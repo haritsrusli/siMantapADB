@@ -40,25 +40,18 @@
                                 </select>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="username" class="form-label">
-                                    <i class="bi bi-person-badge"></i> Username
-                                </label>
-                                <input type="text" class="form-control" id="username" name="username" placeholder="Username untuk login" required>
-                            </div>
-                            
                             <div class="col-md-6 mb-3" id="nisField" style="display: none;">
                                 <label for="nis" class="form-label">
                                     <i class="bi bi-person-badge"></i> NIS
                                 </label>
-                                <input type="text" class="form-control" id="nis" name="nis" placeholder="Nomor Induk Siswa">
+                                <input type="text" class="form-control" id="nis" name="nis" placeholder="Nomor Induk Siswa" required>
                             </div>
                             
                             <div class="col-md-6 mb-3" id="nipField" style="display: none;">
                                 <label for="nip" class="form-label">
                                     <i class="bi bi-person-badge"></i> NIP
                                 </label>
-                                <input type="text" class="form-control" id="nip" name="nip" placeholder="Nomor Induk Pegawai">
+                                <input type="text" class="form-control" id="nip" name="nip" placeholder="Nomor Induk Pegawai" required>
                             </div>
                             
                             <div class="col-md-6 mb-3">

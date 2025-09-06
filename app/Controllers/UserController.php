@@ -60,8 +60,14 @@ class UserController extends BaseController
             $id_kelas = null;
         }
         
-        // Gunakan username dari form untuk semua role
-        $username = $this->request->getPost('username');
+        // Untuk siswa, gunakan NIS sebagai username
+        // Untuk guru/wali kelas, gunakan NIP sebagai username
+        $username = '';
+        if ($role === 'siswa') {
+            $username = $this->request->getPost('nis');
+        } else {
+            $username = $this->request->getPost('nip');
+        }
         
         $data = [
             'username' => $username,
@@ -123,8 +129,14 @@ class UserController extends BaseController
             $id_kelas = null;
         }
         
-        // Gunakan username dari form untuk semua role
-        $username = $this->request->getPost('username');
+        // Untuk siswa, gunakan NIS sebagai username
+        // Untuk guru/wali kelas, gunakan NIP sebagai username
+        $username = '';
+        if ($role === 'siswa') {
+            $username = $this->request->getPost('nis');
+        } else {
+            $username = $this->request->getPost('nip');
+        }
         
         $data = [
             'username' => $username,
