@@ -49,7 +49,7 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>No</th>
-                                    <th>Username/NIS/NIP</th>
+                                    <th>NIP/NIS</th>
                                     <th>Nama Lengkap</th>
                                     <th>Role</th>
                                     <th>Kelas (jika wali kelas)</th>
@@ -63,7 +63,16 @@
                                     <tr>
                                         <td><?= $no++ ?></td>
                                         <td>
-                                            <i class="bi bi-card-text"></i> <?= $row['username'] ?>
+                                            <i class="bi bi-card-text"></i> 
+                                            <?php 
+                                            if($row['role'] == 'siswa') {
+                                                echo 'NIS: ' . $row['username'];
+                                            } elseif($row['role'] == 'guru' || $row['role'] == 'wali_kelas') {
+                                                echo 'NIP: ' . $row['username'];
+                                            } else {
+                                                echo $row['username'];
+                                            }
+                                            ?>
                                         </td>
                                         <td>
                                             <i class="bi bi-person"></i> <?= $row['nama_lengkap'] ?>
