@@ -40,6 +40,13 @@
                                 </select>
                             </div>
                             
+                            <div class="col-md-6 mb-3" id="usernameField" style="display: none;">
+                                <label for="username" class="form-label">
+                                    <i class="bi bi-person-badge"></i> Username
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Username untuk login">
+                            </div>
+                            
                             <div class="col-md-6 mb-3" id="nisField" style="display: none;">
                                 <label for="nis" class="form-label">
                                     <i class="bi bi-person-badge"></i> NIS
@@ -100,24 +107,29 @@
     <script>
     // Menampilkan/menyembunyikan field berdasarkan pilihan role
     document.getElementById('role').addEventListener('change', function() {
+        var usernameField = document.getElementById('usernameField');
         var nisField = document.getElementById('nisField');
         var nipField = document.getElementById('nipField');
         var kelasField = document.getElementById('kelasField');
         
         // Sembunyikan semua field terlebih dahulu
+        usernameField.style.display = 'none';
         nisField.style.display = 'none';
         nipField.style.display = 'none';
         kelasField.style.display = 'none';
         
         // Reset nilai field
+        document.getElementById('username').value = '';
         document.getElementById('nis').value = '';
         document.getElementById('nip').value = '';
         document.getElementById('id_kelas').value = '';
         
         // Tampilkan field sesuai role
         if (this.value === 'siswa') {
+            usernameField.style.display = 'block';
             nisField.style.display = 'block';
         } else if (this.value === 'guru' || this.value === 'wali_kelas') {
+            usernameField.style.display = 'block';
             nipField.style.display = 'block';
             if (this.value === 'wali_kelas') {
                 kelasField.style.display = 'block';
