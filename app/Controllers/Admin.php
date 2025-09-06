@@ -218,6 +218,10 @@ class Admin extends BaseController
                 'jam_pulang_kamis' => '15:00:00',
                 'jam_masuk_jumat' => '07:00:00',
                 'jam_pulang_jumat' => '15:00:00',
+                'jam_masuk_sabtu' => null,
+                'jam_pulang_sabtu' => null,
+                'jam_masuk_minggu' => null,
+                'jam_pulang_minggu' => null,
             ];
             
             if ($pengaturanModel->save($defaultData)) {
@@ -251,6 +255,10 @@ class Admin extends BaseController
         $jamPulangKamis = $this->request->getPost('jam_pulang_kamis');
         $jamMasukJumat = $this->request->getPost('jam_masuk_jumat');
         $jamPulangJumat = $this->request->getPost('jam_pulang_jumat');
+        $jamMasukSabtu = $this->request->getPost('jam_masuk_sabtu');
+        $jamPulangSabtu = $this->request->getPost('jam_pulang_sabtu');
+        $jamMasukMinggu = $this->request->getPost('jam_masuk_minggu');
+        $jamPulangMinggu = $this->request->getPost('jam_pulang_minggu');
 
         // Validate input
         if (empty($latitude) || empty($longitude) || empty($radius)) {
@@ -296,6 +304,10 @@ class Admin extends BaseController
             'jam_pulang_kamis' => $jamPulangKamis,
             'jam_masuk_jumat' => $jamMasukJumat,
             'jam_pulang_jumat' => $jamPulangJumat,
+            'jam_masuk_sabtu' => $jamMasukSabtu,
+            'jam_pulang_sabtu' => $jamPulangSabtu,
+            'jam_masuk_minggu' => $jamMasukMinggu,
+            'jam_pulang_minggu' => $jamPulangMinggu,
         ];
 
         try {
@@ -333,7 +345,8 @@ class Admin extends BaseController
         $pengaturan = $pengaturanModel->first();
 
         $data = [];
-        $hariNames = ['senin', 'selasa', 'rabu', 'kamis', 'jumat'];
+        // Tambahkan hari Sabtu dan Minggu
+        $hariNames = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
 
         foreach ($hariNames as $hari) {
             $data['jam_masuk_' . $hari] = $this->request->getPost('jam_masuk_' . $hari);

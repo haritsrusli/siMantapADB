@@ -26,6 +26,10 @@ class Pengaturan extends Model
         'jam_pulang_kamis',
         'jam_masuk_jumat',
         'jam_pulang_jumat',
+        'jam_masuk_sabtu',
+        'jam_pulang_sabtu',
+        'jam_masuk_minggu',
+        'jam_pulang_minggu',
     ];
 
     protected bool $allowEmptyInserts = false;
