@@ -77,7 +77,6 @@
                             <a href="<?= base_url('admin/user-roles') ?>" class="btn btn-outline-primary">
                                 <i class="bi bi-person-badge"></i> User Roles
                             </a>
-                            <!-- Tambahkan akses cepat lainnya di sini jika diperlukan -->
                         </div>
                     </div>
                 </div>
