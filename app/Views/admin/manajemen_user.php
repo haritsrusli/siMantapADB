@@ -64,15 +64,7 @@
                                         <td><?= $no++ ?></td>
                                         <td>
                                             <i class="bi bi-card-text"></i> 
-                                            <?php 
-                                            if($row['role'] == 'siswa') {
-                                                echo 'NIS: ' . $row['username'];
-                                            } elseif($row['role'] == 'guru' || $row['role'] == 'wali_kelas') {
-                                                echo 'NIP: ' . $row['username'];
-                                            } else {
-                                                echo $row['username'];
-                                            }
-                                            ?>
+                                            <?= $row['username'] ?>
                                         </td>
                                         <td>
                                             <i class="bi bi-person"></i> <?= $row['nama_lengkap'] ?>

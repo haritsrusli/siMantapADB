@@ -98,8 +98,9 @@
     </div>
 
     <script>
-    // Menyimpan nilai NIP saat halaman dimuat
-    var nipValue = document.getElementById('nip').value;
+    // Menyimpan nilai awal NIP dan NIS
+    var initialNip = "<?= ($user['role'] == 'guru' || $user['role'] == 'wali_kelas') ? $user['username'] : '' ?>";
+    var initialNis = "<?= $user['role'] == 'siswa' ? $user['username'] : '' ?>";
     
     // Menampilkan/menyembunyikan field berdasarkan pilihan role
     document.getElementById('role').addEventListener('change', function() {
@@ -112,26 +113,22 @@
         nipField.style.display = 'none';
         kelasField.style.display = 'none';
         
-        // Reset nilai field
-        document.getElementById('nis').value = '';
-        document.getElementById('id_kelas').value = '';
-        
         // Tampilkan field sesuai role
         if (this.value === 'siswa') {
             nisField.style.display = 'block';
             // Jika sebelumnya adalah guru/walikelas, pindahkan nilai NIP ke NIS
-            if (document.getElementById('nip').value) {
-                document.getElementById('nis').value = document.getElementById('nip').value;
+            if (initialNip && !document.getElementById('nis').value) {
+                document.getElementById('nis').value = initialNip;
             }
         } else if (this.value === 'guru' || this.value === 'wali_kelas') {
             nipField.style.display = 'block';
             // Jika sebelumnya adalah siswa, pindahkan nilai NIS ke NIP
-            if (document.getElementById('nis').value) {
-                document.getElementById('nip').value = document.getElementById('nis').value;
+            if (initialNis && !document.getElementById('nip').value) {
+                document.getElementById('nip').value = initialNis;
             }
             // Jika mengubah role dari walikelas ke guru, pertahankan nilai NIP
-            if (this.value === 'guru' && nipValue) {
-                document.getElementById('nip').value = nipValue;
+            if (this.value === 'guru' && initialNip && !document.getElementById('nip').value) {
+                document.getElementById('nip').value = initialNip;
             }
             if (this.value === 'wali_kelas') {
                 kelasField.style.display = 'block';
