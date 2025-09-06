@@ -608,14 +608,9 @@ class Siswa extends BaseController
             
             // Cek apakah jam presensi telah diatur untuk hari ini
             if (empty($pengaturan[$jamMasukField]) || empty($pengaturan[$jamPulangField])) {
-                // Untuk Sabtu (6) dan Minggu (7), jika tidak ada pengaturan jam, izinkan presensi
-                if ($hari == 6 || $hari == 7) {
-                    // Izinkan presensi di akhir pekan meskipun jam tidak diatur
-                    $jamPresensi = date('H:i:s', strtotime($waktuPresensi));
-                    return ['status' => 'valid', 'is_late' => false, 'message' => ''];
-                }
-                
-                return ['status' => 'no_time_set', 'is_late' => false, 'message' => 'Jam masuk atau jam pulang belum diatur untuk hari ini.'];
+                // Jika jam presensi tidak diatur untuk hari ini, izinkan presensi dengan waktu bebas
+                $jamPresensi = date('H:i:s', strtotime($waktuPresensi));
+                return ['status' => 'valid', 'is_late' => false, 'message' => ''];
             }
             
             $jamPresensi = date('H:i:s', strtotime($waktuPresensi));

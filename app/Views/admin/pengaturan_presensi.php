@@ -127,7 +127,9 @@
                                         'selasa' => 'Selasa', 
                                         'rabu' => 'Rabu',
                                         'kamis' => 'Kamis',
-                                        'jumat' => 'Jumat'
+                                        'jumat' => 'Jumat',
+                                        'sabtu' => 'Sabtu',
+                                        'minggu' => 'Minggu'
                                     ];
                                     
                                     foreach($hariIndonesia as $hari_en => $hari_id): 
@@ -138,11 +140,11 @@
                                             <td><?= $hari_id ?></td>
                                             <td>
                                                 <input type="time" class="form-control" name="<?= $jam_masuk_field ?>" 
-                                                       value="<?= isset($pengaturan) ? $pengaturan[$jam_masuk_field] : '07:00' ?>">
+                                                       value="<?= isset($pengaturan) && !empty($pengaturan[$jam_masuk_field]) ? $pengaturan[$jam_masuk_field] : '' ?>">
                                             </td>
                                             <td>
                                                 <input type="time" class="form-control" name="<?= $jam_pulang_field ?>" 
-                                                       value="<?= isset($pengaturan) ? $pengaturan[$jam_pulang_field] : '15:00' ?>">
+                                                       value="<?= isset($pengaturan) && !empty($pengaturan[$jam_pulang_field]) ? $pengaturan[$jam_pulang_field] : '' ?>">
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
