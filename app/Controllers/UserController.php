@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\User;
 use App\Models\Kelas;
+use App\Models\UserRole;
 
 class UserController extends BaseController
 {
@@ -106,6 +107,10 @@ class UserController extends BaseController
         // Mendapatkan data kelas untuk dropdown
         $kelasModel = new Kelas();
         $data['kelas'] = $kelasModel->findAll();
+        
+        // Mendapatkan role tambahan user
+        $userRoleModel = new UserRole();
+        $data['user_roles'] = $userRoleModel->where('user_id', $id)->findAll();
 
         return view('admin/edit_user', $data);
     }

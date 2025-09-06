@@ -30,7 +30,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="role" class="form-label">
-                                    <i class="bi bi-person-lines-fill"></i> Role
+                                    <i class="bi bi-person-lines-fill"></i> Role Utama
                                 </label>
                                 <select class="form-select" id="role" name="role" required>
                                     <option value="">Pilih Role</option>
@@ -81,6 +81,32 @@
                                     <?php endif; ?>
                                 </select>
                             </div>
+                            
+                            <!-- Role Tambahan - Hanya untuk guru dan wali kelas -->
+                            <?php if($user['role'] == 'guru' || $user['role'] == 'wali_kelas'): ?>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-person-badge-fill"></i> Role Tambahan
+                                </label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="role_guru_piket" name="roles_tambahan[]" value="guru_piket" 
+                                        <?php 
+                                        if (!empty($user_roles)) {
+                                            foreach ($user_roles as $user_role) {
+                                                if ($user_role['role'] == 'guru_piket') {
+                                                    echo 'checked';
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        ?>>
+                                    <label class="form-check-label" for="role_guru_piket">
+                                        Guru Piket
+                                    </label>
+                                </div>
+                                <!-- Tambahkan role tambahan lainnya di sini jika diperlukan -->
+                            </div>
+                            <?php endif; ?>
                         </div>
                         
                         <div class="d-flex justify-content-between">
@@ -122,22 +148,6 @@
         // Jika mengubah role dari walikelas ke role lain, hapus id_kelas
         if (this.value !== 'wali_kelas') {
             document.getElementById('id_kelas').value = '';
-        }
-    });
-    
-    // Form submit handler
-    document.getElementById('editUserForm').addEventListener('submit', function(e) {
-        // Validasi sederhana
-        var role = document.getElementById('role').value;
-        if (role === 'siswa' && !document.getElementById('nis').value) {
-            e.preventDefault();
-            alert('NIS harus diisi untuk siswa');
-            return false;
-        }
-        if ((role === 'guru' || role === 'wali_kelas') && !document.getElementById('nip').value) {
-            e.preventDefault();
-            alert('NIP harus diisi untuk guru/wali kelas');
-            return false;
         }
     });
     </script>

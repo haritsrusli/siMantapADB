@@ -30,11 +30,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= (strpos(current_url(), base_url('admin/user-roles')) !== false) ? 'active' : '' ?>" href="<?= base_url('admin/user-roles') ?>">
-                            <i class="bi bi-person-badge"></i> User Roles
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link <?= (strpos(current_url(), base_url('admin/kelas')) !== false) ? 'active' : '' ?>" href="<?= base_url('admin/kelas') ?>">
                             <i class="bi bi-building"></i> Manajemen Kelas
                         </a>
@@ -63,6 +58,29 @@
         <div class="row">
             <div class="col-md-12">
                 <?= $this->renderSection('content') ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Akses Cepat -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning"></i> Akses Cepat
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="<?= base_url('admin/user-roles') ?>" class="btn btn-outline-primary">
+                                <i class="bi bi-person-badge"></i> User Roles
+                            </a>
+                            <!-- Tambahkan akses cepat lainnya di sini jika diperlukan -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
