@@ -98,10 +98,6 @@
     </div>
 
     <script>
-    // Menyimpan nilai awal NIP dan NIS
-    var initialNip = "<?= ($user['role'] == 'guru' || $user['role'] == 'wali_kelas') ? $user['username'] : '' ?>";
-    var initialNis = "<?= $user['role'] == 'siswa' ? $user['username'] : '' ?>";
-    
     // Menampilkan/menyembunyikan field berdasarkan pilihan role
     document.getElementById('role').addEventListener('change', function() {
         var nisField = document.getElementById('nisField');
@@ -116,20 +112,8 @@
         // Tampilkan field sesuai role
         if (this.value === 'siswa') {
             nisField.style.display = 'block';
-            // Jika sebelumnya adalah guru/walikelas, pindahkan nilai NIP ke NIS
-            if (initialNip && !document.getElementById('nis').value) {
-                document.getElementById('nis').value = initialNip;
-            }
         } else if (this.value === 'guru' || this.value === 'wali_kelas') {
             nipField.style.display = 'block';
-            // Jika sebelumnya adalah siswa, pindahkan nilai NIS ke NIP
-            if (initialNis && !document.getElementById('nip').value) {
-                document.getElementById('nip').value = initialNis;
-            }
-            // Jika mengubah role dari walikelas ke guru, pertahankan nilai NIP
-            if (this.value === 'guru' && initialNip && !document.getElementById('nip').value) {
-                document.getElementById('nip').value = initialNip;
-            }
             if (this.value === 'wali_kelas') {
                 kelasField.style.display = 'block';
             }
@@ -138,6 +122,22 @@
         // Jika mengubah role dari walikelas ke role lain, hapus id_kelas
         if (this.value !== 'wali_kelas') {
             document.getElementById('id_kelas').value = '';
+        }
+    });
+    
+    // Form submit handler
+    document.getElementById('editUserForm').addEventListener('submit', function(e) {
+        // Validasi sederhana
+        var role = document.getElementById('role').value;
+        if (role === 'siswa' && !document.getElementById('nis').value) {
+            e.preventDefault();
+            alert('NIS harus diisi untuk siswa');
+            return false;
+        }
+        if ((role === 'guru' || role === 'wali_kelas') && !document.getElementById('nip').value) {
+            e.preventDefault();
+            alert('NIP harus diisi untuk guru/wali kelas');
+            return false;
         }
     });
     </script>
