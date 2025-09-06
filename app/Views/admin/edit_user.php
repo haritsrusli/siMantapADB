@@ -98,6 +98,9 @@
     </div>
 
     <script>
+    // Menyimpan nilai NIP saat halaman dimuat
+    var nipValue = document.getElementById('nip').value;
+    
     // Menampilkan/menyembunyikan field berdasarkan pilihan role
     document.getElementById('role').addEventListener('change', function() {
         var nisField = document.getElementById('nisField');
@@ -111,14 +114,25 @@
         
         // Reset nilai field
         document.getElementById('nis').value = '';
-        document.getElementById('nip').value = '';
         document.getElementById('id_kelas').value = '';
         
         // Tampilkan field sesuai role
         if (this.value === 'siswa') {
             nisField.style.display = 'block';
+            // Jika sebelumnya adalah guru/walikelas, pindahkan nilai NIP ke NIS
+            if (document.getElementById('nip').value) {
+                document.getElementById('nis').value = document.getElementById('nip').value;
+            }
         } else if (this.value === 'guru' || this.value === 'wali_kelas') {
             nipField.style.display = 'block';
+            // Jika sebelumnya adalah siswa, pindahkan nilai NIS ke NIP
+            if (document.getElementById('nis').value) {
+                document.getElementById('nip').value = document.getElementById('nis').value;
+            }
+            // Jika mengubah role dari walikelas ke guru, pertahankan nilai NIP
+            if (this.value === 'guru' && nipValue) {
+                document.getElementById('nip').value = nipValue;
+            }
             if (this.value === 'wali_kelas') {
                 kelasField.style.display = 'block';
             }
