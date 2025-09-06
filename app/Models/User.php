@@ -19,7 +19,8 @@ class User extends Model
         'role',
         'id_kelas', // Untuk relasi dengan kelas jika role adalah wali_kelas
         'foto_profil',
-        'created_at'
+        'created_at',
+        'updated_at'
     ];
 
     protected bool $allowEmptyInserts = false;
