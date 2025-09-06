@@ -162,6 +162,7 @@ class Siswa extends BaseController
             ->first();
 
         // Cek apakah hari ini Sabtu atau Minggu
+        // Untuk saat ini, kita tetap memeriksa akhir pekan tapi tidak membatasi presensi
         $dayOfWeek = date('N'); // 1 (for Monday) through 7 (for Sunday)
         $data['is_weekend'] = ($dayOfWeek == 6 || $dayOfWeek == 7);
 
@@ -591,11 +592,6 @@ class Siswa extends BaseController
             // Dapatkan hari dalam seminggu (1 = Senin, 7 = Minggu)
             $hari = date('N', strtotime($waktuPresensi));
             
-            // Hanya cek keterlambatan untuk hari Senin-Jumat (1-5)
-            if ($hari < 1 || $hari > 5) {
-                return ['status' => 'weekend', 'is_late' => false, 'message' => 'Hari ini bukan hari kerja.'];
-            }
-            
             // Dapatkan pengaturan jam presensi
             $pengaturanModel = new Pengaturan();
             $pengaturan = $pengaturanModel->first();
@@ -605,13 +601,20 @@ class Siswa extends BaseController
             }
             
             // Tentukan field jam berdasarkan hari
-            $hariNames = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat'];
+            $hariNames = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'];
             $hariName = $hariNames[$hari];
             $jamMasukField = 'jam_masuk_' . $hariName;
             $jamPulangField = 'jam_pulang_' . $hariName;
             
             // Cek apakah jam presensi telah diatur untuk hari ini
             if (empty($pengaturan[$jamMasukField]) || empty($pengaturan[$jamPulangField])) {
+                // Untuk Sabtu (6) dan Minggu (7), jika tidak ada pengaturan jam, izinkan presensi
+                if ($hari == 6 || $hari == 7) {
+                    // Izinkan presensi di akhir pekan meskipun jam tidak diatur
+                    $jamPresensi = date('H:i:s', strtotime($waktuPresensi));
+                    return ['status' => 'valid', 'is_late' => false, 'message' => ''];
+                }
+                
                 return ['status' => 'no_time_set', 'is_late' => false, 'message' => 'Jam masuk atau jam pulang belum diatur untuk hari ini.'];
             }
             

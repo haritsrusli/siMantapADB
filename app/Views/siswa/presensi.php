@@ -9,8 +9,8 @@
                 <p class="lead">Lihat status presensi Anda hari ini atau lakukan presensi.</p>
 
                 <?php if(isset($is_weekend) && $is_weekend): ?>
-                    <div class="alert alert-warning" role="alert">
-                        <i class="bi bi-info-circle"></i> Hari ini adalah hari Sabtu atau Minggu. Presensi tidak diperkenankan pada hari libur.
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i> Hari ini adalah hari Sabtu atau Minggu.
                     </div>
                 <?php endif; ?>
             </div>
@@ -31,7 +31,7 @@
                                 <p class="text-muted"><small><?= date('d M Y H:i:s', strtotime($presensi['waktu_presensi'])) ?></small></p>
                             <?php else: ?>
                                 <p class="text-muted"><i class="bi bi-x-circle"></i> Anda belum presensi hari ini.</p>
-                                <button id="show-presensi-btn" class="btn btn-success" <?= (isset($is_weekend) && $is_weekend) ? 'disabled' : '' ?>><i class="bi bi-camera"></i> Lakukan Presensi</button>
+                                <button id="show-presensi-btn" class="btn btn-success"><i class="bi bi-camera"></i> Lakukan Presensi</button>
                             <?php endif; ?>
                         </div>
                     </div>
