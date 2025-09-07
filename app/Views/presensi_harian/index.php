@@ -185,15 +185,26 @@
                                         <td><?= esc($record['nis']) ?></td>
                                         <td><?= esc($record['tingkat'] . ' ' . $record['jurusan'] . ' ' . $record['nama_kelas']) ?></td>
                                         <td>
-                                            <?php if ($record['jenis'] == 'izin'): ?>
-                                                <span class="badge badge-warning">Izin</span>
-                                            <?php elseif ($record['jenis'] == 'sakit'): ?>
-                                                <span class="badge badge-danger">Sakit</span>
-                                            <?php elseif ($record['jenis'] == 'alpa'): ?>
-                                                <span class="badge badge-dark">Alpa</span>
-                                            <?php else: ?>
-                                                <span class="badge badge-success">Hadir</span>
-                                            <?php endif; ?>
+                                            <?php
+                                            if (!empty($record['jenis'])) {
+                                                switch ($record['jenis']) {
+                                                    case 'sakit':
+                                                        echo '<span class="badge badge-danger">Sakit</span>';
+                                                        break;
+                                                    case 'izin':
+                                                        echo '<span class="badge badge-warning">Izin</span>';
+                                                        break;
+                                                    case 'alpa':
+                                                        echo '<span class="badge badge-dark">Alpa</span>';
+                                                        break;
+                                                    default:
+                                                        echo '<span class="badge badge-success">Hadir</span>';
+                                                        break;
+                                                }
+                                            } else {
+                                                echo '<span class="badge badge-success">Hadir</span>';
+                                            }
+                                            ?>
                                         </td>
                                         <td><?= esc($record['keterangan'] ?? '-') ?></td>
                                         <td>

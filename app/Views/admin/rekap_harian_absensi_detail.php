@@ -42,9 +42,11 @@
                                 <th>NIS</th>
                                 <th>Nama Siswa</th>
                                 <th>Hadir</th>
-                                <th>Tidak Hadir</th>
-                                <th>Total Hari Kerja</th>
-                                <th>Persentase</th>
+                                <th>Izin</th>
+                                <th>Sakit</th>
+                                <th>Alpa</th>
+                                <th>Persentase Kehadiran</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -54,8 +56,9 @@
                                 <td><?= $r['nis'] ?></td>
                                 <td><?= $r['nama'] ?></td>
                                 <td><?= $r['hadir'] ?></td>
-                                <td><?= $r['tidak_hadir'] ?></td>
-                                <td><?= $r['total_hari_kerja'] ?></td>
+                                <td><?= $r['izin'] ?></td>
+                                <td><?= $r['sakit'] ?></td>
+                                <td><?= $r['alpa'] ?></td>
                                 <td>
                                     <div class="progress" style="height: 20px;">
                                         <div class="progress-bar <?= $r['persentase'] >= 75 ? 'bg-success' : ($r['persentase'] >= 50 ? 'bg-warning' : 'bg-danger') ?>" 
@@ -67,6 +70,13 @@
                                             <?= $r['persentase'] ?>%
                                         </div>
                                     </div>
+                                    <small class="text-muted">(<?= $r['hadir'] ?> dari <?= $r['total_hari_kerja'] ?> hari kerja)</small>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            onclick="showDetail('<?= addslashes($r['nama']) ?>', '<?= base64_encode(json_encode($r['detail_kehadiran'])) ?>')">
+                                        <i class="bi bi-eye"></i> Detail
+                                    </button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -89,4 +99,96 @@
     </div>
 </div>
 
+<!-- Modal for detail kehadiran -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailModalLabel">Detail Kehadiran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="siswaName"></h6>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+    function showDetail(siswaName, encodedDetailKehadiran) {
+        // Decode base64 data
+        var decodedData = atob(encodedDetailKehadiran);
+        var detailKehadiran = JSON.parse(decodedData);
+        
+        $('#siswaName').text('Siswa: ' + siswaName);
+        var tableBody = $('#detailTableBody');
+        tableBody.empty();
+        
+        // Convert object to array and sort by date
+        var dates = Object.keys(detailKehadiran).sort();
+        
+        dates.forEach(function(date) {
+            var status = detailKehadiran[date];
+            var statusClass = '';
+            var statusIcon = '';
+            
+            switch(status.toLowerCase()) {
+                case 'hadir':
+                    statusClass = 'text-success';
+                    statusIcon = '✔';
+                    break;
+                case 'izin':
+                    statusClass = 'text-warning';
+                    statusIcon = 'Ⓘ';
+                    break;
+                case 'sakit':
+                    statusClass = 'text-danger';
+                    statusIcon = 'Ⓢ';
+                    break;
+                case 'alpa':
+                case 'tak hadir':
+                    statusClass = 'text-dark';
+                    statusIcon = 'Ⓐ';
+                    break;
+                default:
+                    statusClass = 'text-secondary';
+                    statusIcon = '?';
+            }
+            
+            var row = '<tr>' +
+                '<td>' + formatDate(date) + '</td>' +
+                '<td class="' + statusClass + '">' + statusIcon + ' ' + status + '</td>' +
+                '</tr>';
+            tableBody.append(row);
+        });
+        
+        // Show the modal using Bootstrap 5 method
+        var modal = new bootstrap.Modal(document.getElementById('detailModal'));
+        modal.show();
+    }
+    
+    function formatDate(dateString) {
+        var date = new Date(dateString);
+        var options = { day: '2-digit', month: 'short', year: 'numeric' };
+        return date.toLocaleDateString('id-ID', options);
+    }
+</script>
 <?= $this->endSection() ?>

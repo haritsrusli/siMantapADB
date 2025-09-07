@@ -1,0 +1,26 @@
+/* Custom CSS untuk memperbaiki warna font pada badge */
+.badge-danger,
+.badge-dark,
+.badge-success {
+  color: #fff !important;
+}
+
+.badge-warning {
+  color: #212529 !important;
+}
+
+.badge-info {
+  color: #fff !important;
+}
+
+.badge-primary {
+  color: #fff !important;
+}
+
+.badge-secondary {
+  color: #fff !important;
+}
+
+.badge-light {
+  color: #212529 !important;
+}

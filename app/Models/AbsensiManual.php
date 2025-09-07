@@ -76,7 +76,7 @@ class AbsensiManual extends Model
      */
     public function getAbsensiManualWithSiswa($filters = [])
     {
-        $builder = $this->select('absensi_manual.*, users.nama_lengkap as nama_siswa, users.username as nis, kelas.nama_kelas, kelas.tingkat, kelas.jurusan')
+        $builder = $this->select('absensi_manual.id, absensi_manual.user_id, absensi_manual.tanggal, absensi_manual.jenis as status_kehadiran, absensi_manual.keterangan, absensi_manual.created_at, absensi_manual.disetujui_oleh, absensi_manual.tanggal_disetujui, users.nama_lengkap as nama_siswa, users.username as nis, kelas.nama_kelas, kelas.tingkat, kelas.jurusan')
                          ->join('users', 'users.id = absensi_manual.user_id')
                          ->join('kelas', 'kelas.id = users.id_kelas', 'left');
                          

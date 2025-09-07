@@ -693,6 +693,7 @@ class Admin extends BaseController
         }
 
         $absensiModel = new Absensi();
+        $absensiManualModel = new \App\Models\AbsensiManual(); // Tambahkan model absensi manual
         $kelasModel = new \App\Models\Kelas();
         $userModel = new User();
 
@@ -732,28 +733,54 @@ class Admin extends BaseController
             while ($currentDate <= $endDateObj) {
                 $date = $currentDate->format('Y-m-d');
                 
-                // Get attendance for the current date and class
+                // Get attendance for the current date and class (GPS/face recognition)
                 $attendanceRecords = $absensiModel->select('user_id')
                                                   ->where('DATE(waktu_presensi)', $date)
                                                   ->whereIn('user_id', array_column($studentsInClass, 'id'))
                                                   ->findAll();
 
+                // Get manual attendance for the current date and class (izin, sakit, alpa)
+                $manualAttendanceRecords = $absensiManualModel->select('user_id, jenis')
+                                                              ->where('tanggal', $date)
+                                                              ->whereIn('user_id', array_column($studentsInClass, 'id'))
+                                                              ->findAll();
+
+                // Initialize counters
                 $hadir = 0;
-                $izin = 0;  // Placeholder - not currently tracked in the system
-                $sakit = 0; // Placeholder - not currently tracked in the system
+                $izin = 0;
+                $sakit = 0;
+                $alpha = 0;
                 $presentStudents = []; // To track students who have at least one record
 
+                // Process GPS/face recognition attendance
                 foreach ($attendanceRecords as $record) {
                     if (!in_array($record['user_id'], $presentStudents)) {
                         $presentStudents[] = $record['user_id'];
+                        $hadir++; // Count as present (hadir)
                     }
-
-                    // Count as present (hadir)
-                    $hadir++;
                 }
-                
+
+                // Process manual attendance
+                foreach ($manualAttendanceRecords as $record) {
+                    if (!in_array($record['user_id'], $presentStudents)) {
+                        $presentStudents[] = $record['user_id'];
+                        // Count based on jenis
+                        switch ($record['jenis']) {
+                            case 'izin':
+                                $izin++;
+                                break;
+                            case 'sakit':
+                                $sakit++;
+                                break;
+                            case 'alpa':
+                                $alpha++;
+                                break;
+                        }
+                    }
+                }
+
                 // Calculate alpha: total students in class - students with any record
-                $alpha = $totalStudentsInClass - count($presentStudents);
+                $alpha += $totalStudentsInClass - count($presentStudents);
 
                 $kelasInfo = $kelasModel->find($id_kelas);
 
@@ -900,9 +927,9 @@ class Admin extends BaseController
                                  ->orderBy('users.nama_lengkap', 'ASC')
                                  ->findAll();
 
-            // Get all manual attendance for the given date and filters
-            $absensiManualRecords = $absensiManualModel->getAbsensiManualWithSiswa($filters)->findAll();
-            $attendedUserIds = array_column($absensiManualRecords, 'user_id');
+            // Get all manual attendance for the given date and filters to determine who has not attended
+            $allAbsensiManualRecords = $absensiManualModel->getAbsensiManualWithSiswa($filters)->findAll();
+            $attendedUserIds = array_column($allAbsensiManualRecords, 'user_id');
 
             $unattendedStudents = [];
             foreach ($students as $student) {
@@ -912,7 +939,7 @@ class Admin extends BaseController
             }
 
             $data['siswa'] = $unattendedStudents;
-            $data['absensi_records'] = $absensiManualRecords;
+            // $data['absensi_records'] is already populated with paginated data, so no need to overwrite.
         }
 
         // Pass filter values back to the view

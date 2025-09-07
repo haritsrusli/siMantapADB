@@ -38,6 +38,7 @@ class LaporanController extends BaseController
         $kelasModel = new Kelas();
         $userModel = new User();
         $absensiModel = new Absensi();
+        $absensiManualModel = new \App\Models\AbsensiManual(); // Tambahkan model absensi manual
 
         // Get filter parameters
         $start_date = $this->request->getGet('start_date');
@@ -66,12 +67,19 @@ class LaporanController extends BaseController
                                   ->where('id_kelas', $id_kelas)
                                   ->findAll();
 
-            // Get all attendance records for the date range and class
+            // Get all attendance records for the date range and class (GPS/face recognition)
             $attendanceRecords = $absensiModel->select('user_id, DATE(waktu_presensi) as tanggal')
                                               ->where('DATE(waktu_presensi) >=', $start_date)
                                               ->where('DATE(waktu_presensi) <=', $end_date)
                                               ->whereIn('user_id', array_column($students, 'id'))
                                               ->findAll();
+
+            // Get all manual attendance records for the date range and class (izin, sakit, alpa)
+            $manualAttendanceRecords = $absensiManualModel->select('user_id, tanggal, jenis')
+                                                          ->where('tanggal >=', $start_date)
+                                                          ->where('tanggal <=', $end_date)
+                                                          ->whereIn('user_id', array_column($students, 'id'))
+                                                          ->findAll();
 
             // Group attendance by user and date
             $attendanceMap = [];
@@ -81,7 +89,19 @@ class LaporanController extends BaseController
                 if (!isset($attendanceMap[$userId])) {
                     $attendanceMap[$userId] = [];
                 }
-                $attendanceMap[$userId][$date] = true;
+                $attendanceMap[$userId][$date] = 'hadir'; // Tandai sebagai hadir
+            }
+
+            // Group manual attendance by user and date
+            $manualAttendanceMap = [];
+            foreach ($manualAttendanceRecords as $record) {
+                $userId = $record['user_id'];
+                $date = $record['tanggal'];
+                $jenis = $record['jenis'];
+                if (!isset($manualAttendanceMap[$userId])) {
+                    $manualAttendanceMap[$userId] = [];
+                }
+                $manualAttendanceMap[$userId][$date] = $jenis; // Tandai jenis absensi
             }
 
             // Get national holidays for the date range
@@ -113,20 +133,46 @@ class LaporanController extends BaseController
             foreach ($students as $student) {
                 $userId = $student['id'];
                 $attendance = isset($attendanceMap[$userId]) ? $attendanceMap[$userId] : [];
+                $manualAttendance = isset($manualAttendanceMap[$userId]) ? $manualAttendanceMap[$userId] : [];
 
-                // Count attendance for the date range
+                // Initialize counters
                 $hadir = 0;
+                $izin = 0;
+                $sakit = 0;
+                $alpa = 0;
                 $detailKehadiran = [];
                 
                 foreach ($dateRange as $date) {
-                    $status = isset($attendance[$date]) ? 'Hadir' : 'Tidak Hadir';
-                    if ($status === 'Hadir') {
+                    // Cek dulu apakah ada absensi manual
+                    if (isset($manualAttendance[$date])) {
+                        $status = ucfirst($manualAttendance[$date]); // Izin, Sakit, Alpa
+                        switch ($manualAttendance[$date]) {
+                            case 'izin':
+                                $izin++;
+                                break;
+                            case 'sakit':
+                                $sakit++;
+                                break;
+                            case 'alpa':
+                                $alpa++;
+                                break;
+                        }
+                    } 
+                    // Jika tidak ada absensi manual, cek absensi GPS/face recognition
+                    elseif (isset($attendance[$date])) {
+                        $status = 'Hadir';
                         $hadir++;
+                    } 
+                    // Jika tidak ada absensi sama sekali
+                    else {
+                        $status = 'Alpa';
+                        $alpa++;
                     }
+                    
                     $detailKehadiran[$date] = $status;
                 }
-                
-                $tidakHadir = $workingDays - $hadir;
+
+                // Hitung persentase kehadiran (hanya yang hadir)
                 $persentase = $workingDays > 0 ? round(($hadir / $workingDays) * 100, 2) : 0;
 
                 $data['rekap'][] = [
@@ -134,7 +180,10 @@ class LaporanController extends BaseController
                     'nis' => $student['username'],
                     'nama' => $student['nama_lengkap'],
                     'hadir' => $hadir,
-                    'tidak_hadir' => max(0, $tidakHadir), // Ensure it's not negative
+                    'izin' => $izin,
+                    'sakit' => $sakit,
+                    'alpa' => $alpa,
+                    'tidak_hadir' => $izin + $sakit + $alpa, // Tidak hadir = izin + sakit + alpa
                     'persentase' => $persentase,
                     'total_hari_kerja' => $workingDays,
                     'detail_kehadiran' => $detailKehadiran

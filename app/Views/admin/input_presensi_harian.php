@@ -157,19 +157,15 @@
                                         <td><?= esc($record['nama_kelas']) ?></td>
                                         <td>
                                             <?php
-                                                switch ($record['jenis']) {
-                                                    case 'sakit':
-                                                        echo '<span class="badge badge-danger">Sakit</span>';
-                                                        break;
-                                                    case 'izin':
-                                                        echo '<span class="badge badge-warning">Izin</span>';
-                                                        break;
-                                                    case 'alpa':
-                                                        echo '<span class="badge badge-dark">Alpa</span>';
-                                                        break;
-                                                    default:
-                                                        echo '<span class="badge badge-success">Hadir</span>';
-                                                        break;
+                                                $status = $record['status_kehadiran'] ?? '';
+                                                if ($status === 'sakit') {
+                                                    echo '<span class="badge badge-danger">Sakit</span>';
+                                                } elseif ($status === 'izin') {
+                                                    echo '<span class="badge badge-warning">Izin</span>';
+                                                } elseif ($status === 'alpa') {
+                                                    echo '<span class="badge badge-dark">Alpa</span>';
+                                                } else {
+                                                    echo esc($status); // Display other statuses safely
                                                 }
                                             ?>
                                         </td>
