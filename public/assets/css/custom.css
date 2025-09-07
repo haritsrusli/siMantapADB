@@ -1,26 +1,44 @@
 /* Custom CSS untuk memperbaiki warna font pada badge */
-.badge-danger,
-.badge-dark,
-.badge-success {
+.badge {
+  color: #fff !important;
+}
+
+.badge-danger {
+  background-color: #dc3545 !important;
   color: #fff !important;
 }
 
 .badge-warning {
+  background-color: #ffc107 !important;
   color: #212529 !important;
 }
 
+.badge-dark {
+  background-color: #343a40 !important;
+  color: #fff !important;
+}
+
+.badge-success {
+  background-color: #28a745 !important;
+  color: #fff !important;
+}
+
 .badge-info {
+  background-color: #17a2b8 !important;
   color: #fff !important;
 }
 
 .badge-primary {
+  background-color: #007bff !important;
   color: #fff !important;
 }
 
 .badge-secondary {
+  background-color: #6c757d !important;
   color: #fff !important;
 }
 
 .badge-light {
+  background-color: #f8f9fa !important;
   color: #212529 !important;
 }

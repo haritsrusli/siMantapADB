@@ -1,5 +1,9 @@
 <?= $this->extend('admin/template') ?>
 
+<?= $this->section('styles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/css/custom.css') ?>">
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <?php helper('form'); ?>
 <div class="container-fluid">
@@ -186,8 +190,9 @@
                                         <td><?= esc($record['tingkat'] . ' ' . $record['jurusan'] . ' ' . $record['nama_kelas']) ?></td>
                                         <td>
                                             <?php
-                                            if (!empty($record['jenis'])) {
-                                                switch ($record['jenis']) {
+                                            $status_kehadiran = $record['status_kehadiran'] ?? '';
+                                            if (!empty($status_kehadiran)) {
+                                                switch ($status_kehadiran) {
                                                     case 'sakit':
                                                         echo '<span class="badge badge-danger">Sakit</span>';
                                                         break;

@@ -339,6 +339,29 @@ class PresensiHarian extends BaseController
                     $processedUsers[] = $userId;
                 }
             } else {
+                // Untuk status 'hadir' atau jika tidak ada status yang dipilih, hapus record jika ada
+                if (!empty($data['jenis']) && $data['jenis'] == 'hadir') {
+                    // Cek apakah record sudah ada, jika ada maka hapus
+                    $existingRecord = $absensiManualModel->getAbsensiByTanggalAndUser($tanggal, $userId);
+                    if ($existingRecord) {
+                        if ($absensiManualModel->delete($existingRecord['id'])) {
+                            $successCount++;
+                            log_message('debug', 'Successfully deleted data for user ' . $userId . ' (status: hadir)');
+                        } else {
+                            $errorCount++;
+                            $errorMsg = 'Gagal menghapus data absensi untuk user_id ' . $userId;
+                            log_message('error', $errorMsg);
+                            $failedUsers[] = ['user_id' => $userId, 'reason' => 'Failed to delete record for hadir status'];
+                        }
+                        $processedUsers[] = $userId;
+                        continue;
+                    } else {
+                        // Jika tidak ada record dan statusnya hadir, tidak perlu menyimpan apa-apa
+                        log_message('debug', 'Skipping user ' . $userId . ' - status: hadir (no existing record)');
+                        $processedUsers[] = $userId;
+                        continue;
+                    }
+                }
                 log_message('debug', 'Skipping user ' . $userId . ' - jenis: ' . ($data['jenis'] ?? 'empty'));
                 $processedUsers[] = $userId;
             }

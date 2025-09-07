@@ -1,5 +1,9 @@
 <?= $this->extend('admin/template') ?>
 
+<?= $this->section('styles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/css/custom.css') ?>">
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <div class="container-fluid">
     <!-- Page Heading -->
@@ -158,14 +162,23 @@
                                         <td>
                                             <?php
                                                 $status = $record['status_kehadiran'] ?? '';
-                                                if ($status === 'sakit') {
-                                                    echo '<span class="badge badge-danger">Sakit</span>';
-                                                } elseif ($status === 'izin') {
-                                                    echo '<span class="badge badge-warning">Izin</span>';
-                                                } elseif ($status === 'alpa') {
-                                                    echo '<span class="badge badge-dark">Alpa</span>';
+                                                if (!empty($status)) {
+                                                    switch ($status) {
+                                                        case 'sakit':
+                                                            echo '<span class="badge badge-danger">Sakit</span>';
+                                                            break;
+                                                        case 'izin':
+                                                            echo '<span class="badge badge-warning">Izin</span>';
+                                                            break;
+                                                        case 'alpa':
+                                                            echo '<span class="badge badge-dark">Alpa</span>';
+                                                            break;
+                                                        default:
+                                                            echo '<span class="badge badge-success">Hadir</span>';
+                                                            break;
+                                                    }
                                                 } else {
-                                                    echo esc($status); // Display other statuses safely
+                                                    echo '<span class="badge badge-success">Hadir</span>';
                                                 }
                                             ?>
                                         </td>

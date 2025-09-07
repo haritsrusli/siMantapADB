@@ -40,7 +40,7 @@ class AbsensiManual extends Model
         protected $validationRules      = [
         'user_id' => 'required|integer',
         'tanggal' => 'required|valid_date',
-        'jenis' => 'required|in_list[izin,sakit,alpa]',
+        'jenis' => 'required|in_list[izin,sakit,alpa,hadir]',
         'keterangan' => 'permit_empty|string|max_length[500]',
     ];
     protected $validationMessages   = [
@@ -54,7 +54,7 @@ class AbsensiManual extends Model
         ],
         'jenis' => [
             'required' => 'Jenis absensi harus dipilih',
-            'in_list' => 'Jenis absensi hanya boleh izin, sakit, atau alpa',
+            'in_list' => 'Jenis absensi hanya boleh izin, sakit, alpa, atau hadir',
         ],
     ];
     protected $skipValidation       = false; // Aktifkan kembali validasi
@@ -77,7 +77,7 @@ class AbsensiManual extends Model
     public function getAbsensiManualWithSiswa($filters = [])
     {
         $builder = $this->select('absensi_manual.id, absensi_manual.user_id, absensi_manual.tanggal, absensi_manual.jenis as status_kehadiran, absensi_manual.keterangan, absensi_manual.created_at, absensi_manual.disetujui_oleh, absensi_manual.tanggal_disetujui, users.nama_lengkap as nama_siswa, users.username as nis, kelas.nama_kelas, kelas.tingkat, kelas.jurusan')
-                         ->join('users', 'users.id = absensi_manual.user_id')
+                         ->join('users', 'users.id = absensi_manual.user_id', 'left')
                          ->join('kelas', 'kelas.id = users.id_kelas', 'left');
                          
         // Apply filters if provided
