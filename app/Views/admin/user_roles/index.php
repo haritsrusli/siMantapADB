@@ -2,6 +2,8 @@
 
 <?= $this->section('content') ?>
 
+    
+
     <div class="row">
         <div class="col-md-12">
             <h2 class="mb-4">
@@ -40,6 +42,11 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="mb-3">
+                        <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+                        </a>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">

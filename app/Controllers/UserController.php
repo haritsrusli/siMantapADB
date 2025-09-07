@@ -18,11 +18,43 @@ class UserController extends BaseController
         }
 
         $userModel = new User();
-        $data['users'] = $userModel->findAll();
+        $kelasModel = new Kelas();
+
+        // Get search and filter parameters from request
+        $search = $this->request->getGet('search');
+        $role = $this->request->getGet('role');
+        $id_kelas = $this->request->getGet('id_kelas');
+
+        // Start building the query
+        $query = $userModel;
+
+        // Apply search filter
+        if (!empty($search)) {
+            $query = $query->groupStart()
+                           ->like('username', $search)
+                           ->orLike('nama_lengkap', $search)
+                           ->groupEnd();
+        }
+
+        // Apply role filter
+        if (!empty($role)) {
+            $query = $query->where('role', $role);
+        }
+
+        // Apply class filter
+        if (!empty($id_kelas)) {
+            $query = $query->where('id_kelas', $id_kelas);
+        }
+
+        $data['users'] = $query->findAll();
         
         // Mendapatkan data kelas untuk ditampilkan
-        $kelasModel = new Kelas();
         $data['kelas'] = $kelasModel->findAll();
+
+        // Pass filter values back to the view to retain selections
+        $data['search'] = $search;
+        $data['role'] = $role;
+        $data['id_kelas'] = $id_kelas;
 
         return view('admin/manajemen_user', $data);
     }
@@ -55,9 +87,19 @@ class UserController extends BaseController
         // Mendapatkan data dari form
         $role = $this->request->getPost('role');
         $id_kelas = $this->request->getPost('id_kelas');
+
+        if ($role === 'wali_kelas') {
+            // Check if the class is already assigned to another wali_kelas
+            $existingWaliKelas = $userModel->where('id_kelas', $id_kelas)
+                                           ->where('role', 'wali_kelas')
+                                           ->first();
+            if ($existingWaliKelas) {
+                return redirect()->back()->with('error', 'Kelas ini sudah memiliki wali kelas.')->withInput();
+            }
+        }
         
-        // Jika role bukan wali_kelas, maka id_kelas tidak diperlukan
-        if ($role !== 'wali_kelas') {
+        // Jika role bukan wali_kelas atau siswa, maka id_kelas tidak diperlukan
+        if ($role !== 'wali_kelas' && $role !== 'siswa') {
             $id_kelas = null;
         }
         
@@ -108,9 +150,7 @@ class UserController extends BaseController
         $kelasModel = new Kelas();
         $data['kelas'] = $kelasModel->findAll();
         
-        // Mendapatkan role tambahan user
-        $userRoleModel = new UserRole();
-        $data['user_roles'] = $userRoleModel->where('user_id', $id)->findAll();
+        
 
         return view('admin/edit_user', $data);
     }
@@ -124,13 +164,29 @@ class UserController extends BaseController
         }
 
         $userModel = new User();
+        $user = $userModel->find($id);
+
+        if (!$user) {
+            return redirect()->to('/admin/user')->with('error', 'Data user tidak ditemukan');
+        }
         
         // Mendapatkan data dari form
         $role = $this->request->getPost('role');
         $id_kelas = $this->request->getPost('id_kelas');
+
+        if ($role === 'wali_kelas') {
+            // Check if the class is already assigned to another wali_kelas
+            $existingWaliKelas = $userModel->where('id_kelas', $id_kelas)
+                                           ->where('role', 'wali_kelas')
+                                           ->where('id !=', $id) // Exclude the current user
+                                           ->first();
+            if ($existingWaliKelas) {
+                return redirect()->back()->with('error', 'Kelas ini sudah memiliki wali kelas.')->withInput();
+            }
+        }
         
-        // Jika role bukan wali_kelas, maka id_kelas tidak diperlukan
-        if ($role !== 'wali_kelas') {
+        // Jika role bukan wali_kelas atau siswa, maka id_kelas tidak diperlukan
+        if ($role !== 'wali_kelas' && $role !== 'siswa') {
             $id_kelas = null;
         }
         
@@ -144,11 +200,15 @@ class UserController extends BaseController
         }
         
         $data = [
-            'username' => $username,
             'nama_lengkap' => $this->request->getPost('nama_lengkap'),
             'role' => $role,
             'id_kelas' => $id_kelas,
         ];
+
+        // Check if username has changed
+        if ($username !== $user['username']) {
+            $data['username'] = $username;
+        }
 
         $password = $this->request->getPost('password');
         if (!empty($password)) {

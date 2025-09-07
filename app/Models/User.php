@@ -38,7 +38,7 @@ class User extends Model
 
     // Validation
     protected $validationRules      = [
-        'username' => 'required|alpha_numeric_space|min_length[3]|max_length[100]',
+        'username' => 'required|regex_match[/^[a-zA-Z0-9 .]+$/]|min_length[3]|max_length[100]|is_unique[users.username,id,{id}]',
         'password' => 'required|min_length[6]|max_length[255]',
         'nama_lengkap' => 'required|min_length[3]|max_length[150]',
         'role' => 'required|in_list[admin,siswa,guru,wali_kelas,guru_piket]', // Menambahkan guru_piket sebagai role baru
@@ -46,9 +46,10 @@ class User extends Model
     protected $validationMessages   = [
         'username' => [
             'required' => 'Username harus diisi',
-            'alpha_numeric_space' => 'Username hanya boleh mengandung huruf, angka, dan spasi',
+            'regex_match' => 'Username hanya boleh mengandung huruf, angka, spasi, dan titik',
             'min_length' => 'Username minimal 3 karakter',
             'max_length' => 'Username maksimal 100 karakter',
+            'is_unique' => 'Username sudah digunakan',
         ],
         'password' => [
             'required' => 'Password harus diisi',

@@ -12,7 +12,7 @@
     </div>
 
     <div class="row mt-4">
-        <div class="col-md-12">
+        <div class="col-md-12" id="notification-container">
             <?php if(session()->getFlashdata('success')): ?>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <i class="bi bi-check-circle"></i> <?= session()->getFlashdata('success') ?>
@@ -37,9 +37,6 @@
                         <h5 class="mb-0">
                             <i class="bi bi-person-badge"></i> Roles untuk <?= $user['nama_lengkap'] ?>
                         </h5>
-                        <a href="<?= base_url('admin/user-roles') ?>" class="btn btn-sm btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Kembali
-                        </a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -60,16 +57,34 @@
                             </label>
                             <div class="row">
                                 <?php foreach ($availableRoles as $role): ?>
-                                    <?php if ($role !== $user['role']): // Jangan tampilkan role utama ?>
-                                        <div class="col-md-4 mb-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="roles[]" value="<?= $role ?>" id="role_<?= $role ?>" <?= in_array($role, $userRoles) ? 'checked' : '' ?>>
-                                                <label class="form-check-label" for="role_<?= $role ?>">
-                                                    <?= ucfirst(str_replace('_', ' ', $role)) ?>
-                                                </label>
-                                            </div>
+                                    <?php
+                                    // Skip if the role is the user's main role
+                                    if ($role === $user['role']) {
+                                        continue;
+                                    }
+
+                                    // Conditional logic for students
+                                    if ($user['role'] === 'siswa') {
+                                        if ($role !== 'ketua_kelas' && $role !== 'sekretaris') {
+                                            continue; // Skip other roles for students
+                                        }
+                                    }
+
+                                    // Conditional logic for teachers and homeroom teachers
+                                    if ($user['role'] === 'guru' || $user['role'] === 'wali_kelas') {
+                                        if (in_array($role, ['siswa', 'ketua_kelas', 'sekretaris'])) {
+                                            continue; // Skip student-related roles for teachers
+                                        }
+                                    }
+                                    ?>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="roles[]" value="<?= $role ?>" id="role_<?= $role ?>" <?= in_array($role, $userRoles) ? 'checked' : '' ?>>
+                                            <label class="form-check-label" for="role_<?= $role ?>">
+                                                <?= ucfirst(str_replace('_', ' ', $role)) ?>
+                                            </label>
                                         </div>
-                                    <?php endif; ?>
+                                    </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
@@ -109,19 +124,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // Tampilkan pesan sukses
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-success alert-dismissible fade show';
-                alert.innerHTML = `
-                    <i class="bi bi-check-circle"></i> ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                document.querySelector('.col-md-12').insertBefore(alert, document.querySelector('.card'));
-                
-                // Reload halaman setelah 2 detik
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                location.reload();
             } else {
                 // Tampilkan pesan error
                 const alert = document.createElement('div');
@@ -130,7 +133,8 @@
                     <i class="bi bi-exclamation-triangle"></i> ${data.message}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 `;
-                document.querySelector('.col-md-12').insertBefore(alert, document.querySelector('.card'));
+                document.getElementById('notification-container').innerHTML = '';
+                document.getElementById('notification-container').appendChild(alert);
             }
         })
         .catch(error => {
@@ -142,7 +146,8 @@
                 <i class="bi bi-exclamation-triangle"></i> Terjadi kesalahan saat menyimpan roles
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             `;
-            document.querySelector('.col-md-12').insertBefore(alert, document.querySelector('.card'));
+            document.getElementById('notification-container').innerHTML = '';
+            document.getElementById('notification-container').appendChild(alert);
         });
     });
 </script>

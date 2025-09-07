@@ -60,8 +60,20 @@
                                                 <?php endif; ?>
                                             <?php elseif ($item['is_weekend']): ?>
                                                 <span class="badge bg-secondary">Libur Akhir Pekan</span>
-                                            <?php elseif ($item['jam_presensi']): ?>
+                                            <?php elseif ($item['jenis_presensi'] === 'hadir'): ?>
                                                 <span class="badge bg-success">Hadir</span>
+                                            <?php elseif ($item['jenis_presensi'] === 'izin'): ?>
+                                                <span class="badge bg-warning">Izin</span>
+                                                <?php if (!empty($item['keterangan_manual'])): ?>
+                                                    <small class="d-block"><?= $item['keterangan_manual'] ?></small>
+                                                <?php endif; ?>
+                                            <?php elseif ($item['jenis_presensi'] === 'sakit'): ?>
+                                                <span class="badge bg-danger">Sakit</span>
+                                                <?php if (!empty($item['keterangan_manual'])): ?>
+                                                    <small class="d-block"><?= $item['keterangan_manual'] ?></small>
+                                                <?php endif; ?>
+                                            <?php elseif ($item['jenis_presensi'] === 'alpa'): ?>
+                                                <span class="badge bg-dark">Alpa</span>
                                             <?php else: ?>
                                                 <span class="badge bg-danger">Tidak Hadir</span>
                                             <?php endif; ?>

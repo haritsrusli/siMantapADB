@@ -44,14 +44,14 @@
                                 <label for="nis" class="form-label">
                                     <i class="bi bi-person-badge"></i> NIS
                                 </label>
-                                <input type="text" class="form-control" id="nis" name="nis" placeholder="Nomor Induk Siswa" required>
+                                <input type="text" class="form-control" id="nis" name="nis" placeholder="Nomor Induk Siswa">
                             </div>
                             
                             <div class="col-md-6 mb-3" id="nipField" style="display: none;">
                                 <label for="nip" class="form-label">
                                     <i class="bi bi-person-badge"></i> NIP
                                 </label>
-                                <input type="text" class="form-control" id="nip" name="nip" placeholder="Nomor Induk Pegawai" required>
+                                <input type="text" class="form-control" id="nip" name="nip" placeholder="Nomor Induk Pegawai">
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -70,7 +70,7 @@
                             
                             <div class="col-md-12 mb-3" id="kelasField" style="display: none;">
                                 <label for="id_kelas" class="form-label">
-                                    <i class="bi bi-book"></i> Kelas yang Diampu
+                                    <i class="bi bi-book"></i> Kelas
                                 </label>
                                 <select class="form-select" id="id_kelas" name="id_kelas">
                                     <option value="">Pilih Kelas</option>
@@ -103,30 +103,34 @@
         var nisField = document.getElementById('nisField');
         var nipField = document.getElementById('nipField');
         var kelasField = document.getElementById('kelasField');
+        var nisInput = document.getElementById('nis');
+        var nipInput = document.getElementById('nip');
         
-        // Sembunyikan semua field terlebih dahulu
+        // Sembunyikan semua field terlebih dahulu dan hapus atribut required
         nisField.style.display = 'none';
+        nisInput.removeAttribute('required');
+        
         nipField.style.display = 'none';
+        nipInput.removeAttribute('required');
+
         kelasField.style.display = 'none';
         
         // Reset nilai field
-        document.getElementById('nis').value = '';
-        document.getElementById('nip').value = '';
+        nisInput.value = '';
+        nipInput.value = '';
         document.getElementById('id_kelas').value = '';
         
-        // Tampilkan field sesuai role
+        // Tampilkan field sesuai role dan tambahkan atribut required
         if (this.value === 'siswa') {
             nisField.style.display = 'block';
+            nisInput.setAttribute('required', 'required');
+            kelasField.style.display = 'block';
         } else if (this.value === 'guru' || this.value === 'wali_kelas') {
             nipField.style.display = 'block';
+            nipInput.setAttribute('required', 'required');
             if (this.value === 'wali_kelas') {
                 kelasField.style.display = 'block';
             }
-        }
-        
-        // Jika mengubah role dari walikelas ke role lain, hapus id_kelas
-        if (this.value !== 'wali_kelas') {
-            document.getElementById('id_kelas').value = '';
         }
     });
     </script>

@@ -68,9 +68,9 @@
                                 <input type="password" class="form-control" id="password" name="password">
                             </div>
                             
-                            <div class="col-md-12 mb-3" id="kelasField" style="<?= $user['role'] == 'wali_kelas' ? 'display: block;' : 'display: none;' ?>">
+                            <div class="col-md-12 mb-3" id="kelasField" style="<?= ($user['role'] == 'wali_kelas' || $user['role'] == 'siswa') ? 'display: block;' : 'display: none;' ?>">
                                 <label for="id_kelas" class="form-label">
-                                    <i class="bi bi-book"></i> Kelas yang Diampu
+                                    <i class="bi bi-book"></i> Kelas
                                 </label>
                                 <select class="form-select" id="id_kelas" name="id_kelas">
                                     <option value="">Pilih Kelas</option>
@@ -82,31 +82,7 @@
                                 </select>
                             </div>
                             
-                            <!-- Role Tambahan - Hanya untuk guru dan wali kelas -->
-                            <?php if($user['role'] == 'guru' || $user['role'] == 'wali_kelas'): ?>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">
-                                    <i class="bi bi-person-badge-fill"></i> Role Tambahan
-                                </label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="role_guru_piket" name="roles_tambahan[]" value="guru_piket" 
-                                        <?php 
-                                        if (!empty($user_roles)) {
-                                            foreach ($user_roles as $user_role) {
-                                                if ($user_role['role'] == 'guru_piket') {
-                                                    echo 'checked';
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        ?>>
-                                    <label class="form-check-label" for="role_guru_piket">
-                                        Guru Piket
-                                    </label>
-                                </div>
-                                <!-- Tambahkan role tambahan lainnya di sini jika diperlukan -->
-                            </div>
-                            <?php endif; ?>
+                            
                         </div>
                         
                         <div class="d-flex justify-content-between">
@@ -124,31 +100,51 @@
     </div>
 
     <script>
-    // Menampilkan/menyembunyikan field berdasarkan pilihan role
-    document.getElementById('role').addEventListener('change', function() {
+    function toggleFields(roleValue) {
+        var role = roleValue;
         var nisField = document.getElementById('nisField');
         var nipField = document.getElementById('nipField');
         var kelasField = document.getElementById('kelasField');
+        var nisInput = document.getElementById('nis');
+        var nipInput = document.getElementById('nip');
         
-        // Sembunyikan semua field terlebih dahulu
+        // Sembunyikan semua field terlebih dahulu dan hapus atribut required
         nisField.style.display = 'none';
+        nisInput.removeAttribute('required');
+        
         nipField.style.display = 'none';
+        nipInput.removeAttribute('required');
+
         kelasField.style.display = 'none';
         
-        // Tampilkan field sesuai role
-        if (this.value === 'siswa') {
+        // Tampilkan field sesuai role dan tambahkan atribut required
+        if (role === 'siswa') {
             nisField.style.display = 'block';
-        } else if (this.value === 'guru' || this.value === 'wali_kelas') {
+            nisInput.setAttribute('required', 'required');
+            kelasField.style.display = 'block';
+        } else if (role === 'guru' || role === 'wali_kelas') {
             nipField.style.display = 'block';
-            if (this.value === 'wali_kelas') {
+            nipInput.setAttribute('required', 'required');
+            if (role === 'wali_kelas') {
                 kelasField.style.display = 'block';
             }
         }
         
         // Jika mengubah role dari walikelas ke role lain, hapus id_kelas
-        if (this.value !== 'wali_kelas') {
+        if (role !== 'wali_kelas' && role !== 'siswa') {
             document.getElementById('id_kelas').value = '';
         }
+    }
+
+    // Panggil fungsi saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleFields(document.getElementById('role').value);
+    });
+
+    // Panggil fungsi saat role diubah
+    document.getElementById('role').addEventListener('change', function() {
+        toggleFields(this.value);
     });
     </script>
+</script>
 <?= $this->endSection() ?>

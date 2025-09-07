@@ -86,19 +86,21 @@
                     <div class="row mt-3">
                         <!-- Baris Kedua -->
                         <div class="col-md-3 mb-3">
-                            <a href="<?= base_url('laporan/rekap-harian') ?>" class="btn btn-outline-warning w-100">
-                                <i class="bi bi-calendar-day"></i> Rekap Harian
+                            <a href="<?= base_url('admin/input-presensi-harian') ?>" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-calendar-plus"></i> Input Presensi Harian
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="<?= base_url('laporan/rekap-kehadiran') ?>" class="btn btn-outline-info w-100">
-                                <i class="bi bi-file-earmark-bar-graph"></i> Rekap Kehadiran
+                            <a href="<?= base_url('laporan') ?>" class="btn btn-outline-info w-100">
+                                <i class="bi bi-file-earmark-bar-graph"></i> Rekap Presensi Harian
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
+                            <a href="<?= base_url('admin/user-roles') ?>" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-person-badge"></i> User Roles
+                            </a>
                         </div>
-                        <div class="col-md-3 mb-3">
-                        </div>
+                        
                     </div>
                 </div>
             </div>

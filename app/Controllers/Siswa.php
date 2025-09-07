@@ -404,6 +404,7 @@ class Siswa extends BaseController
 
         $userId = $session->get('user_id');
         $absensiModel = new Absensi();
+        $absensiManualModel = new \App\Models\AbsensiManual();
         $liburNasionalModel = new \App\Models\LiburNasional();
 
         // Ambil data presensi yang sudah ada
@@ -418,6 +419,19 @@ class Siswa extends BaseController
         $presensiMap = [];
         foreach ($presensiExist as $presensi) {
             $presensiMap[$presensi['tanggal']] = $presensi;
+        }
+        
+        // Ambil data presensi manual (izin/sakit/alpa)
+        $presensiManualExist = $absensiManualModel
+            ->select('tanggal, jenis, keterangan')
+            ->where('user_id', $userId)
+            ->orderBy('tanggal', 'DESC')
+            ->findAll();
+            
+        // Konversi array presensi manual ke associative array untuk pencarian cepat
+        $presensiManualMap = [];
+        foreach ($presensiManualExist as $presensi) {
+            $presensiManualMap[$presensi['tanggal']] = $presensi;
         }
         
         // Dapatkan semua tanggal dalam bulan ini
@@ -448,23 +462,45 @@ class Siswa extends BaseController
             // Cek apakah tanggal ini adalah libur nasional
             $isLiburNasional = isset($liburNasionalMap[$tanggal]);
             
+            // Cek apakah ada presensi manual
+            $hasManualPresensi = isset($presensiManualMap[$tanggal]);
+            
             if (isset($presensiMap[$tanggal])) {
-                // Jika ada presensi, gunakan data yang sebenarnya
+                // Jika ada presensi GPS/face recognition, gunakan data yang sebenarnya
                 $riwayat[] = [
                     'tanggal' => $tanggal,
                     'jam_presensi' => $presensiMap[$tanggal]['jam_presensi'],
                     'is_weekend' => $isWeekend,
                     'is_libur_nasional' => $isLiburNasional,
-                    'keterangan_libur' => $isLiburNasional ? $liburNasionalMap[$tanggal]['keterangan'] : null
+                    'keterangan_libur' => $isLiburNasional ? $liburNasionalMap[$tanggal]['keterangan'] : null,
+                    'jenis_presensi' => 'hadir' // Presensi otomatis
                 ];
-            } else {
-                // Jika tidak ada presensi, tambahkan entry kosong
+            } elseif ($hasManualPresensi) {
+                // Jika ada presensi manual, gunakan data manual
+                $manualPresensi = $presensiManualMap[$tanggal];
                 $riwayat[] = [
                     'tanggal' => $tanggal,
                     'jam_presensi' => null,
                     'is_weekend' => $isWeekend,
                     'is_libur_nasional' => $isLiburNasional,
-                    'keterangan_libur' => $isLiburNasional ? $liburNasionalMap[$tanggal]['keterangan'] : null
+                    'keterangan_libur' => $isLiburNasional ? $liburNasionalMap[$tanggal]['keterangan'] : null,
+                    'jenis_presensi' => $manualPresensi['jenis'], // izin, sakit, alpa
+                    'keterangan_manual' => $manualPresensi['keterangan']
+                ];
+            } else {
+                // Jika tidak ada presensi sama sekali, anggap alpa jika bukan weekend atau libur
+                $jenis_presensi = null;
+                if (!$isWeekend && !$isLiburNasional) {
+                    $jenis_presensi = 'alpa';
+                }
+
+                $riwayat[] = [
+                    'tanggal' => $tanggal,
+                    'jam_presensi' => null,
+                    'is_weekend' => $isWeekend,
+                    'is_libur_nasional' => $isLiburNasional,
+                    'keterangan_libur' => $isLiburNasional ? $liburNasionalMap[$tanggal]['keterangan'] : null,
+                    'jenis_presensi' => $jenis_presensi
                 ];
             }
         }

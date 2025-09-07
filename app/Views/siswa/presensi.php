@@ -53,13 +53,7 @@
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-12 text-center">
-            <a href="<?= base_url('siswa/dashboard') ?>" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
-            </a>
-        </div>
-    </div>
+    
 
     <div id="presensi-form-container" style="display: none;">
         <div class="row">

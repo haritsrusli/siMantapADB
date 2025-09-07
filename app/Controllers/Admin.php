@@ -684,5 +684,458 @@ class Admin extends BaseController
         }
     }
 
+    public function rekapHarian()
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return redirect()->to('/auth');
+        }
+
+        $absensiModel = new Absensi();
+        $kelasModel = new \App\Models\Kelas();
+        $userModel = new User();
+
+        // Get filter parameters from request
+        $start_date = $this->request->getGet('start_date');
+        $end_date = $this->request->getGet('end_date');
+        $id_kelas = $this->request->getGet('id_kelas');
+        $page = $this->request->getGet('page') ?? 1;
+        $perPage = 36; // Maximum records per page
+
+        $data['rekap_harian'] = [];
+        $data['kelas'] = $kelasModel->findAll(); // Get all classes for the dropdown
+
+        // Set default dates if not provided
+        if (empty($start_date)) {
+            $start_date = date('Y-m-01');
+        }
+        if (empty($end_date)) {
+            $end_date = date('Y-m-t');
+        }
+
+        // Only process if class is selected
+        if (!empty($id_kelas)) {
+            // Get all students in the selected class
+            $studentsInClass = $userModel->where('role', 'siswa')
+                                         ->where('id_kelas', $id_kelas)
+                                         ->findAll();
+            $totalStudentsInClass = count($studentsInClass);
+
+            // Loop through each date in the range
+            $currentDate = new \DateTime($start_date);
+            $endDateObj = new \DateTime($end_date);
+            
+            // Array to hold all records
+            $allRecords = [];
+
+            while ($currentDate <= $endDateObj) {
+                $date = $currentDate->format('Y-m-d');
+                
+                // Get attendance for the current date and class
+                $attendanceRecords = $absensiModel->select('user_id')
+                                                  ->where('DATE(waktu_presensi)', $date)
+                                                  ->whereIn('user_id', array_column($studentsInClass, 'id'))
+                                                  ->findAll();
+
+                $hadir = 0;
+                $izin = 0;  // Placeholder - not currently tracked in the system
+                $sakit = 0; // Placeholder - not currently tracked in the system
+                $presentStudents = []; // To track students who have at least one record
+
+                foreach ($attendanceRecords as $record) {
+                    if (!in_array($record['user_id'], $presentStudents)) {
+                        $presentStudents[] = $record['user_id'];
+                    }
+
+                    // Count as present (hadir)
+                    $hadir++;
+                }
+                
+                // Calculate alpha: total students in class - students with any record
+                $alpha = $totalStudentsInClass - count($presentStudents);
+
+                $kelasInfo = $kelasModel->find($id_kelas);
+
+                $allRecords[] = [
+                    'tanggal' => $date,
+                    'nama_kelas' => $kelasInfo['nama_kelas'] . ' (' . $kelasInfo['tingkat'] . ' - ' . $kelasInfo['jurusan'] . ')',
+                    'total_siswa' => $totalStudentsInClass,
+                    'hadir' => $hadir,
+                    'izin' => $izin,
+                    'sakit' => $sakit,
+                    'alpha' => $alpha,
+                ];
+
+                $currentDate->modify('+1 day');
+            }
+            
+            // Calculate pagination
+            $totalRecords = count($allRecords);
+            $totalPages = ceil($totalRecords / $perPage);
+            
+            // Ensure page is within valid range
+            $page = max(1, min($page, $totalPages));
+            
+            // Get records for current page
+            $offset = ($page - 1) * $perPage;
+            $data['rekap_harian'] = array_slice($allRecords, $offset, $perPage);
+            
+            // Pass pagination data to view
+            $data['pager'] = [
+                'totalRecords' => $totalRecords,
+                'totalPages' => $totalPages,
+                'currentPage' => $page,
+                'perPage' => $perPage,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'id_kelas' => $id_kelas
+            ];
+        } else {
+            // Initialize pager data even when no class is selected
+            $data['pager'] = [
+                'totalRecords' => 0,
+                'totalPages' => 0,
+                'currentPage' => 1,
+                'perPage' => $perPage,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'id_kelas' => $id_kelas
+            ];
+        }
+
+        // Pass filter values back to the view to retain selections
+        $data['start_date'] = $start_date;
+        $data['end_date'] = $end_date;
+        $data['id_kelas'] = $id_kelas;
+
+        return view('admin/rekap_harian', $data);
+    }
     
+    public function inputPresensiHarian()
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return redirect()->to('/auth');
+        }
+
+        $kelasModel = new \App\Models\Kelas();
+        $userModel = new User();
+        $absensiManualModel = new \App\Models\AbsensiManual();
+        $absensiModel = new \App\Models\Absensi(); // Main attendance model
+        
+        // Get filter parameters from request
+        $tanggal = $this->request->getGet('tanggal') ?? date('Y-m-d');
+        $tingkat = $this->request->getGet('tingkat');
+        $jurusan = $this->request->getGet('jurusan');
+        $page = $this->request->getGet('page') ?? 1;
+        $perPage = 20;
+
+        $data['kelas'] = $kelasModel->findAll();
+        $data['siswa'] = [];
+        $data['absensi_records'] = [];
+        $data['pager'] = [
+            'totalRecords' => 0,
+            'totalPages' => 0,
+            'currentPage' => 1,
+            'perPage' => $perPage
+        ];
+
+        // Only process if at least one filter is provided
+        if (!empty($tingkat) || !empty($jurusan)) {
+            // Get student IDs who have already done main attendance
+            $attendedUserIdsMain = $absensiModel->where('DATE(waktu_presensi)', $tanggal)
+                                               ->distinct()
+                                               ->findColumn('user_id') ?? [];
+
+            // Build filters for absensi manual records
+            $filters = [
+                'tanggal' => $tanggal,
+                'tingkat' => $tingkat,
+                'jurusan' => $jurusan
+            ];
+            
+            // Get absensi manual records with student info
+            $recordsQuery = $absensiManualModel->getAbsensiManualWithSiswa($filters);
+            
+            // Get total records for pagination
+            $totalRecords = $recordsQuery->countAllResults(false);
+            $totalPages = ceil($totalRecords / $perPage);
+            $page = max(1, min($page, $totalPages));
+            
+            // Get records for current page
+            $offset = ($page - 1) * $perPage;
+            $data['absensi_records'] = $recordsQuery->limit($perPage, $offset)->findAll();
+            
+            // Pass pagination data
+            $data['pager'] = [
+                'totalRecords' => $totalRecords,
+                'totalPages' => $totalPages,
+                'currentPage' => $page,
+                'perPage' => $perPage
+            ];
+            
+            // Get ALL students based on filters (regardless of whether they have records or not)
+            $builder = $userModel->where('role', 'siswa');
+            
+            if (!empty($tingkat)) {
+                $builder->join('kelas', 'kelas.id = users.id_kelas')
+                        ->where('kelas.tingkat', $tingkat);
+            }
+            
+            if (!empty($jurusan)) {
+                if (empty($tingkat)) {
+                    $builder->join('kelas', 'kelas.id = users.id_kelas');
+                }
+                $builder->where('kelas.jurusan', $jurusan);
+            }
+            
+            // Exclude students who have already done main attendance
+            if (!empty($attendedUserIdsMain)) {
+                $builder->whereNotIn('users.id', $attendedUserIdsMain);
+            }
+
+            $students = $builder->select('users.*, kelas.nama_kelas, kelas.tingkat, kelas.jurusan') // Select necessary fields
+                                 ->orderBy('users.nama_lengkap', 'ASC')
+                                 ->findAll();
+
+            // Get all manual attendance for the given date and filters
+            $absensiManualRecords = $absensiManualModel->getAbsensiManualWithSiswa($filters)->findAll();
+            $attendedUserIds = array_column($absensiManualRecords, 'user_id');
+
+            $unattendedStudents = [];
+            foreach ($students as $student) {
+                if (!in_array($student['id'], $attendedUserIds)) {
+                    $unattendedStudents[] = $student;
+                }
+            }
+
+            $data['siswa'] = $unattendedStudents;
+            $data['absensi_records'] = $absensiManualRecords;
+        }
+
+        // Pass filter values back to the view
+        $data['tanggal'] = $tanggal;
+        $data['tingkat'] = $tingkat;
+        $data['jurusan'] = $jurusan;
+
+        return view('admin/input_presensi_harian', $data);
+    }
+    
+    public function simpanAbsensiManual()
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return redirect()->to('/auth');
+        }
+
+        $absensiManualModel = new \App\Models\AbsensiManual();
+        
+        // Get data from form
+        $user_id = $this->request->getPost('user_id');
+        $tanggal = $this->request->getPost('tanggal');
+        $jenis = $this->request->getPost('jenis');
+        $keterangan = $this->request->getPost('keterangan');
+        
+        // Validate input
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'user_id' => 'required|integer',
+            'tanggal' => 'required|valid_date',
+            'jenis' => 'required|in_list[izin,sakit,alpa]',
+            'keterangan' => 'permit_empty|string|max_length[500]'
+        ]);
+        
+        if (!$validation->withRequest($this->request)->run()) {
+            return redirect()->back()->with('error', 'Data tidak valid: ' . implode(', ', $validation->getErrors()));
+        }
+        
+        // Check if record already exists
+        $existingRecord = $absensiManualModel->getAbsensiByTanggalAndUser($tanggal, $user_id);
+        if ($existingRecord) {
+            return redirect()->back()->with('error', 'Data absensi untuk siswa ini pada tanggal tersebut sudah ada.');
+        }
+        
+        // Prepare data
+        $data = [
+            'user_id' => $user_id,
+            'tanggal' => $tanggal,
+            'jenis' => $jenis,
+            'keterangan' => $keterangan,
+            'disetujui_oleh' => $session->get('user_id'),
+            'tanggal_disetujui' => date('Y-m-d H:i:s')
+        ];
+        
+        // Save record
+        if ($absensiManualModel->save($data)) {
+            return redirect()->back()->with('success', 'Data absensi berhasil disimpan.');
+        } else {
+            return redirect()->back()->with('error', 'Gagal menyimpan data absensi.');
+        }
+    }
+
+    public function simpanAbsensiManualMassal()
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return redirect()->to('/auth');
+        }
+
+        $absensiManualModel = new \App\Models\AbsensiManual();
+        
+        // Get data from form
+        $presensiData = $this->request->getPost('presensi');
+        $tanggal = $this->request->getPost('tanggal');
+        $tingkat = $this->request->getPost('tingkat'); // Get tingkat from form
+        $jurusan = $this->request->getPost('jurusan'); // Get jurusan from form
+        
+        if (empty($presensiData) || !is_array($presensiData)) {
+            return redirect()->back()->with('error', 'Tidak ada data presensi yang dikirim.');
+        }
+
+        $successCount = 0;
+        $errorCount = 0;
+
+        foreach ($presensiData as $userId => $data) {
+            // Only process if a status is selected
+            if (!empty($data['jenis'])) {
+                // Check if record already exists
+                $existingRecord = $absensiManualModel->getAbsensiByTanggalAndUser($tanggal, $userId);
+                if ($existingRecord) {
+                    continue;
+                }
+
+                $insertData = [
+                    'user_id' => $userId,
+                    'tanggal' => $tanggal,
+                    'jenis' => $data['jenis'],
+                    'keterangan' => $data['keterangan'],
+                    'disetujui_oleh' => $session->get('user_id'),
+                    'tanggal_disetujui' => date('Y-m-d H:i:s')
+                ];
+
+                if ($absensiManualModel->save($insertData)) {
+                    $successCount++;
+                } else {
+                    $errorCount++;
+                }
+            }
+        }
+
+        if ($successCount > 0) {
+            session()->setFlashdata('success', "$successCount data absensi berhasil disimpan.");
+        }
+        if ($errorCount > 0) {
+            session()->setFlashdata('error', "$errorCount data absensi gagal disimpan.");
+        }
+
+        // Construct the redirect URL with filter parameters
+        $redirectUrl = base_url('admin/input-presensi-harian') . '?tanggal=' . $tanggal . '&tingkat=' . $tingkat . '&jurusan=' . $jurusan;
+
+        return redirect()->to($redirectUrl);
+    }
+    
+    public function hapusAbsensiManual($id)
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return redirect()->to('/auth');
+        }
+
+        $absensiManualModel = new \App\Models\AbsensiManual();
+        
+        // Check if record exists
+        $record = $absensiManualModel->find($id);
+        if (!$record) {
+            return redirect()->back()->with('error', 'Data absensi tidak ditemukan.');
+        }
+        
+        // Delete record
+        if ($absensiManualModel->delete($id)) {
+            return redirect()->back()->with('success', 'Data absensi berhasil dihapus.');
+        } else {
+            return redirect()->back()->with('error', 'Gagal menghapus data absensi.');
+        }
+    }
+    
+    public function editAbsensiManual($id)
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return redirect()->to('/auth');
+        }
+
+        $absensiManualModel = new \App\Models\AbsensiManual();
+        
+        // Check if record exists
+        $data['absensi'] = $absensiManualModel->find($id);
+        if (!$data['absensi']) {
+            return redirect()->to('/admin/input-presensi-harian')->with('error', 'Data absensi tidak ditemukan.');
+        }
+        
+        // Get user info
+        $userModel = new User();
+        $data['siswa'] = $userModel->find($data['absensi']['user_id']);
+        
+        // Get class info
+        $kelasModel = new \App\Models\Kelas();
+        if ($data['siswa']['id_kelas']) {
+            $data['kelas'] = $kelasModel->find($data['siswa']['id_kelas']);
+        } else {
+            $data['kelas'] = null;
+        }
+
+        return view('admin/edit_absensi_manual', $data);
+    }
+    
+    public function updateAbsensiManual($id)
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return redirect()->to('/auth');
+        }
+
+        $absensiManualModel = new \App\Models\AbsensiManual();
+        
+        // Check if record exists
+        $record = $absensiManualModel->find($id);
+        if (!$record) {
+            return redirect()->to('/admin/input-presensi-harian')->with('error', 'Data absensi tidak ditemukan.');
+        }
+        
+        // Get data from form
+        $jenis = $this->request->getPost('jenis');
+        $keterangan = $this->request->getPost('keterangan');
+        
+        // Validate input
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'jenis' => 'required|in_list[izin,sakit,alpa]',
+            'keterangan' => 'permit_empty|string|max_length[500]'
+        ]);
+        
+        if (!$validation->withRequest($this->request)->run()) {
+            return redirect()->back()->with('error', 'Data tidak valid: ' . implode(', ', $validation->getErrors()));
+        }
+        
+        // Prepare data
+        $data = [
+            'jenis' => $jenis,
+            'keterangan' => $keterangan,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+        
+        // Update record
+        if ($absensiManualModel->update($id, $data)) {
+            return redirect()->to('/admin/input-presensi-harian')->with('success', 'Data absensi berhasil diupdate.');
+        } else {
+            return redirect()->back()->with('error', 'Gagal mengupdate data absensi.');
+        }
+    }
 }

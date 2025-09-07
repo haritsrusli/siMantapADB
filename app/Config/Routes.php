@@ -56,6 +56,30 @@ $routes->get('/admin/user-roles', 'Admin\UserRoleController::index');
 $routes->get('/admin/user-roles/edit/(:num)', 'Admin\UserRoleController::edit/$1');
 $routes->post('/admin/user-roles/update/(:num)', 'Admin\UserRoleController::update/$1');
 
+// Admin - Rekap Harian
+$routes->get('/admin/rekap-harian', 'Admin::rekapHarian');
+
+// Admin - Input Presensi Harian
+$routes->get('/admin/input-presensi-harian', 'Admin::inputPresensiHarian');
+$routes->post('/admin/simpan-absensi-manual', 'Admin::simpanAbsensiManual');
+$routes->post('/admin/simpan-absensi-manual-massal', 'Admin::simpanAbsensiManualMassal');
+$routes->get('/admin/hapus-absensi-manual/(:num)', 'Admin::hapusAbsensiManual/$1');
+$routes->get('/admin/edit-absensi-manual/(:num)', 'Admin::editAbsensiManual/$1');
+$routes->post('/admin/update-absensi-manual/(:num)', 'Admin::updateAbsensiManual/$1');
+
+// Presensi Harian routes
+$routes->get('/presensi-harian', 'PresensiHarian::index');
+$routes->post('/presensi-harian/simpan', 'PresensiHarian::simpan');
+$routes->post('/presensi-harian/simpan-massal', 'PresensiHarian::simpanMassal');
+$routes->get('/presensi-harian/hapus/(:num)', 'PresensiHarian::hapus/$1');
+$routes->get('/presensi-harian/edit/(:num)', 'PresensiHarian::edit/$1');
+$routes->post('/presensi-harian/update/(:num)', 'PresensiHarian::update/$1');
+
+// Laporan routes
+$routes->get('/laporan', 'LaporanController::index');
+$routes->get('/laporan/rekap-harian', 'LaporanController::rekapHarian');
+
+
 
 
 
