@@ -251,11 +251,15 @@ class Siswa extends BaseController
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Pengaturan lokasi belum diatur oleh admin']);
             }
 
-            // Convert to float for calculation
+            // Convert to float for calculation with proper precision
             $lat1 = floatval($latitude);
             $lon1 = floatval($longitude);
             $lat2 = floatval($pengaturan['lokasi_latitude']);
             $lon2 = floatval($pengaturan['lokasi_longitude']);
+            
+            // Log coordinates for debugging
+            log_message('debug', 'User coordinates: lat=' . $lat1 . ', lon=' . $lon1);
+            log_message('debug', 'School coordinates: lat=' . $lat2 . ', lon=' . $lon2);
             
             $jarak = $this->hitungJarak($lat1, $lon1, $lat2, $lon2);
             
@@ -266,7 +270,7 @@ class Siswa extends BaseController
             if ($jarak > $pengaturan['radius_meter']) {
                 return $this->response->setJSON([
                     'status' => 'error', 
-                    'message' => 'Anda berada di luar area sekolah. Jarak: ' . round($jarak, 2) . ' meter'
+                    'message' => 'Anda berada di luar area sekolah. Jarak Anda dari sekolah: ' . number_format($jarak, 2, '.', '') . ' meter. Radius yang diizinkan: ' . $pengaturan['radius_meter'] . ' meter.'
                 ]);
             }
 
@@ -377,11 +381,15 @@ class Siswa extends BaseController
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Pengaturan lokasi belum diatur oleh admin.']);
             }
 
-            // Convert to float for calculation
+            // Convert to float for calculation with proper precision
             $lat1 = floatval($latitude);
             $lon1 = floatval($longitude);
             $lat2 = floatval($pengaturan['lokasi_latitude']);
             $lon2 = floatval($pengaturan['lokasi_longitude']);
+            
+            // Log coordinates for debugging
+            log_message('debug', 'Check location - User coordinates: lat=' . $lat1 . ', lon=' . $lon1);
+            log_message('debug', 'Check location - School coordinates: lat=' . $lat2 . ', lon=' . $lon2);
             
             $jarak = $this->hitungJarak($lat1, $lon1, $lat2, $lon2);
             
@@ -392,7 +400,7 @@ class Siswa extends BaseController
             if ($jarak > $pengaturan['radius_meter']) {
                 return $this->response->setJSON([
                     'status' => 'error', 
-                    'message' => 'Anda berada di luar area sekolah. Jarak Anda dari sekolah: ' . round($jarak, 2) . ' meter.'
+                    'message' => 'Anda berada di luar area sekolah. Jarak Anda dari sekolah: ' . number_format($jarak, 2, '.', '') . ' meter. Radius yang diizinkan: ' . $pengaturan['radius_meter'] . ' meter.'
                 ]);
             }
 

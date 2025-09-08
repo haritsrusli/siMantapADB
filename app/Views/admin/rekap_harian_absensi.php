@@ -19,6 +19,11 @@
                 </h5>
             </div>
             <div class="card-body">
+                <div class="mb-3">
+                    <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+                    </a>
+                </div>
                 <form action="<?= base_url('laporan/rekap-harian') ?>" method="GET">
                     <div class="row">
                         <div class="col-md-4 mb-3">

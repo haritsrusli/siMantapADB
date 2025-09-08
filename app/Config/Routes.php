@@ -67,6 +67,10 @@ $routes->get('/admin/hapus-absensi-manual/(:num)', 'Admin::hapusAbsensiManual/$1
 $routes->get('/admin/edit-absensi-manual/(:num)', 'Admin::editAbsensiManual/$1');
 $routes->post('/admin/update-absensi-manual/(:num)', 'Admin::updateAbsensiManual/$1');
 
+// Admin - Lock/Unlock Lokasi
+$routes->post('/admin/lock-lokasi', 'Admin::lockLokasi');
+$routes->post('/admin/unlock-lokasi', 'Admin::unlockLokasi');
+
 // Presensi Harian routes
 $routes->get('/presensi-harian', 'PresensiHarian::index');
 $routes->post('/presensi-harian/simpan', 'PresensiHarian::simpan');

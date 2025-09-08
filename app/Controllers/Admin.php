@@ -208,6 +208,8 @@ class Admin extends BaseController
                 'lokasi_latitude' => '-6.2088',
                 'lokasi_longitude' => '106.8456',
                 'radius_meter' => 50,
+                'lokasi_locked' => 0,
+                'google_maps_api_key' => '',
                 'jam_masuk_senin' => '07:00:00',
                 'jam_pulang_senin' => '15:00:00',
                 'jam_masuk_selasa' => '07:00:00',
@@ -243,6 +245,7 @@ class Admin extends BaseController
         $latitude = $this->request->getPost('latitude');
         $longitude = $this->request->getPost('longitude');
         $radius = $this->request->getPost('radius');
+        $googleMapsApiKey = $this->request->getPost('google_maps_api_key');
 
         // Get jam presensi data
         $jamMasukSenin = $this->request->getPost('jam_masuk_senin');
@@ -275,6 +278,10 @@ class Admin extends BaseController
         $lon = floatval($longitude);
         $rad = intval($radius);
 
+        // Format coordinates to 8 decimal places for precision
+        $lat = number_format($lat, 8, '.', '');
+        $lon = number_format($lon, 8, '.', '');
+
         if ($lat < -90 || $lat > 90) {
             return redirect()->back()->with('error', 'Latitude harus antara -90 dan 90');
         }
@@ -294,6 +301,7 @@ class Admin extends BaseController
             'lokasi_latitude' => $lat,
             'lokasi_longitude' => $lon,
             'radius_meter' => $rad,
+            'google_maps_api_key' => $googleMapsApiKey,
             'jam_masuk_senin' => $jamMasukSenin,
             'jam_pulang_senin' => $jamPulangSenin,
             'jam_masuk_selasa' => $jamMasukSelasa,
@@ -1163,6 +1171,62 @@ class Admin extends BaseController
             return redirect()->to('/admin/input-presensi-harian')->with('success', 'Data absensi berhasil diupdate.');
         } else {
             return redirect()->back()->with('error', 'Gagal mengupdate data absensi.');
+        }
+    }
+    
+    public function lockLokasi()
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Akses ditolak']);
+        }
+
+        try {
+            $pengaturanModel = new Pengaturan();
+            $pengaturan = $pengaturanModel->first();
+            
+            if (!$pengaturan) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Pengaturan tidak ditemukan']);
+            }
+            
+            // Update lock status to locked (1)
+            if ($pengaturanModel->update($pengaturan['id'], ['lokasi_locked' => 1])) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'Lokasi berhasil dikunci']);
+            } else {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Gagal mengunci lokasi']);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Error in lockLokasi: ' . $e->getMessage());
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Terjadi kesalahan saat mengunci lokasi']);
+        }
+    }
+    
+    public function unlockLokasi()
+    {
+        // Check if user is logged in and is admin
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Akses ditolak']);
+        }
+
+        try {
+            $pengaturanModel = new Pengaturan();
+            $pengaturan = $pengaturanModel->first();
+            
+            if (!$pengaturan) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Pengaturan tidak ditemukan']);
+            }
+            
+            // Update lock status to unlocked (0)
+            if ($pengaturanModel->update($pengaturan['id'], ['lokasi_locked' => 0])) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'Lokasi berhasil dibuka']);
+            } else {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Gagal membuka lokasi']);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Error in unlockLokasi: ' . $e->getMessage());
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Terjadi kesalahan saat membuka lokasi']);
         }
     }
 }

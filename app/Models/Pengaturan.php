@@ -16,6 +16,8 @@ class Pengaturan extends Model
         'lokasi_latitude',
         'lokasi_longitude',
         'radius_meter',
+        'lokasi_locked',
+        'google_maps_api_key',
         'jam_masuk_senin',
         'jam_pulang_senin',
         'jam_masuk_selasa',

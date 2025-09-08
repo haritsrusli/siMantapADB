@@ -17,6 +17,11 @@
             <h6 class="m-0 font-weight-bold text-primary">Filter Data</h6>
         </div>
         <div class="card-body">
+            <div class="mb-3">
+                <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+                </a>
+            </div>
             <form method="GET" action="<?= base_url('admin/input-presensi-harian') ?>">
                 <div class="row">
                     <div class="col-md-4">

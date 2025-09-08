@@ -189,6 +189,7 @@
         }
         
         function showPosition(position) {
+            // Use higher precision (8 decimal places) for coordinates
             latitude = position.coords.latitude;
             longitude = position.coords.longitude;
 
@@ -197,12 +198,15 @@
             fetch('<?= base_url("siswa/check-location") ?>', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-                body: JSON.stringify({ latitude: latitude, longitude: longitude })
+                body: JSON.stringify({ 
+                    latitude: parseFloat(latitude.toFixed(8)), 
+                    longitude: parseFloat(longitude.toFixed(8)) 
+                })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    locationStatus.innerHTML = `<div class='text-center'><i class='bi bi-check-circle text-success' style='font-size: 2rem;'></i><p class='text-success mt-2'>Lokasi Anda sesuai. Silakan ambil foto.</p><p class='mb-1'><small>Lat: ${latitude.toFixed(6)}, Lon: ${longitude.toFixed(6)}</small></p></div>`;
+                    locationStatus.innerHTML = `<div class='text-center'><i class='bi bi-check-circle text-success' style='font-size: 2rem;'></i><p class='text-success mt-2'>Lokasi Anda sesuai. Silakan ambil foto.</p><p class='mb-1'><small>Lat: ${latitude.toFixed(8)}, Lon: ${longitude.toFixed(8)}</small></p></div>`;
                     cameraCard.style.display = 'block';
                     startCamera();
                 } else {
