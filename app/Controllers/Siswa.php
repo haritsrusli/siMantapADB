@@ -710,8 +710,9 @@ class Siswa extends BaseController
             file_put_contents($selfiePath, base64_decode($selfieBase64));
             
             // Panggil skrip Python untuk perbandingan wajah
-            $pythonPath = "C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
-            $command = '"' . $pythonPath . '" ' . ROOTPATH . "face_compare.py " . escapeshellarg($profilePhotoPath) . " " . escapeshellarg($selfiePath) . " 2>&1";
+            // Path diambil dari .env, fallback ke 'python' jika tidak ada
+            $pythonPath = getenv('PYTHON_PATH') ?: 'python';
+            $command = $pythonPath . ' ' . ROOTPATH . "face_compare.py " . escapeshellarg($profilePhotoPath) . " " . escapeshellarg($selfiePath) . " 2>&1";
             $output = shell_exec($command);
             
             // Catat output dari skrip Python untuk debugging
