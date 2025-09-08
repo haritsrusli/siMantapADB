@@ -126,6 +126,16 @@ Implementasi face recognition saat ini menggunakan simulasi. Untuk mengganti den
 2. Temukan fungsi `verifyFace()`
 3. Ikuti contoh implementasi yang diberikan dalam komentar
 
+### Struktur Direktori
+Proyek ini telah diorganisir dengan struktur direktori sebagai berikut:
+- `app/` - Kode aplikasi CodeIgniter
+- `public/` - File publik yang dapat diakses web
+- `tools/` - Script debugging dan testing
+- `scripts/` - Script utilitas administrasi
+
+### Fitur Presensi Manual
+Sistem ini mendukung presensi manual yang dapat diatur oleh admin untuk siswa tertentu pada tanggal tertentu. Ketika admin mengatur presensi manual (izin/sakit), sistem akan menampilkan notifikasi di halaman presensi siswa bahwa mereka tidak perlu melakukan presensi karena status kehadiran mereka sudah diatur secara manual.
+
 ## Troubleshooting
 
 ### Error Koneksi Database

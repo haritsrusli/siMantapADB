@@ -13,6 +13,17 @@
                         <i class="bi bi-info-circle"></i> Hari ini adalah hari Sabtu atau Minggu.
                     </div>
                 <?php endif; ?>
+                
+                <?php if($presensi_manual): ?>
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        Anda tidak perlu melakukan presensi hari ini karena sudah diatur secara manual oleh admin.
+                        Status kehadiran Anda: <strong><?= ucfirst($presensi_manual['jenis']) ?></strong>
+                        <?php if(!empty($presensi_manual['keterangan'])): ?>
+                            (<?= $presensi_manual['keterangan'] ?>)
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -29,6 +40,9 @@
                             <?php if($presensi): ?>
                                 <p class="text-success mb-1"><i class="bi bi-check-circle-fill"></i> Anda sudah presensi hari ini</p>
                                 <p class="text-muted"><small><?= date('d M Y H:i:s', strtotime($presensi['waktu_presensi'])) ?></small></p>
+                            <?php elseif($presensi_manual): ?>
+                                <p class="text-warning mb-1"><i class="bi bi-exclamation-triangle"></i> Presensi diatur secara manual oleh admin</p>
+                                <p class="text-muted"><small>Status: <?= ucfirst($presensi_manual['jenis']) ?></small></p>
                             <?php else: ?>
                                 <p class="text-muted"><i class="bi bi-x-circle"></i> Anda belum presensi hari ini.</p>
                                 <button id="show-presensi-btn" class="btn btn-success"><i class="bi bi-camera"></i> Lakukan Presensi</button>
@@ -134,6 +148,12 @@
         let stream = null;
 
         function showPresensiForm() {
+            // Cek apakah ada presensi manual
+            <?php if($presensi_manual): ?>
+                alert("Anda tidak dapat melakukan presensi karena status kehadiran Anda sudah diatur secara manual oleh admin.");
+                return;
+            <?php endif; ?>
+            
             statusContainer.style.display = 'none';
             presensiFormContainer.style.display = 'block';
             formTitle.innerHTML = `<i class="bi bi-camera"></i> Form Presensi Harian`;

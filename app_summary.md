@@ -172,3 +172,15 @@ Feedback yang Jelas untuk Pengguna:
 Saat aplikasi memproses data (misalnya, memverifikasi lokasi atau wajah), tampilkan indikator loading (seperti spinner).
 
 Gunakan notifikasi atau toast message yang non-intrusif untuk memberitahu hasil tindakan, seperti "Presensi Berhasil" atau "Lokasi Anda di Luar Jangkauan".
+
+## Struktur Direktori
+
+Proyek ini telah diorganisir dengan struktur direktori sebagai berikut:
+- `app/` - Kode aplikasi CodeIgniter
+- `public/` - File publik yang dapat diakses web
+- `tools/` - Script debugging dan testing
+- `scripts/` - Script utilitas administrasi
+
+## Fitur Presensi Manual
+
+Sistem ini mendukung presensi manual yang dapat diatur oleh admin untuk siswa tertentu pada tanggal tertentu. Ketika admin mengatur presensi manual (izin/sakit), sistem akan menampilkan notifikasi di halaman presensi siswa bahwa mereka tidak perlu melakukan presensi karena status kehadiran mereka sudah diatur secara manual. Fitur ini memastikan bahwa siswa tidak dapat melakukan presensi ganda (otomatis dan manual) pada hari yang sama.

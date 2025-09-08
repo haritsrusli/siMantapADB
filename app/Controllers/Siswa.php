@@ -160,6 +160,12 @@ class Siswa extends BaseController
         $data['presensi'] = $absensiModel->where('user_id', $userId)
             ->where('DATE(waktu_presensi)', $today)
             ->first();
+            
+        // Cek apakah ada presensi manual untuk hari ini
+        $absensiManualModel = new \App\Models\AbsensiManual();
+        $data['presensi_manual'] = $absensiManualModel->where('user_id', $userId)
+            ->where('tanggal', $today)
+            ->first();
 
         // Cek apakah hari ini Sabtu atau Minggu
         // Untuk saat ini, kita tetap memeriksa akhir pekan tapi tidak membatasi presensi
@@ -221,6 +227,20 @@ class Siswa extends BaseController
                 
             if ($existingPresensi) {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah melakukan presensi hari ini']);
+            }
+            
+            // Cek apakah ada presensi manual untuk hari ini
+            $absensiManualModel = new \App\Models\AbsensiManual();
+            $presensiManual = $absensiManualModel->where('user_id', $userId)
+                ->where('tanggal', $today)
+                ->first();
+                
+            if ($presensiManual) {
+                return $this->response->setJSON([
+                    'status' => 'error', 
+                    'message' => 'Anda tidak dapat melakukan presensi karena status kehadiran Anda sudah diatur secara manual oleh admin. Status: ' . ucfirst($presensiManual['jenis']) . 
+                                 (!empty($presensiManual['keterangan']) ? ' (' . $presensiManual['keterangan'] . ')' : '')
+                ]);
             }
 
             // Validate location
