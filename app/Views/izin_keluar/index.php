@@ -39,7 +39,7 @@
                         <tbody>
                             <?php if (!empty($izin_requests)): ?>
                                 <?php foreach ($izin_requests as $req): ?>
-                                    <tr>
+                                    <tr data-status="<?= $req['status'] ?>">
                                         <td><?= $req['id'] ?></td>
                                         <td><?= esc($req['nama_siswa']) ?></td>
                                         <td><span class="badge bg-info"><?= esc($req['jenis_izin']) ?></span></td>
@@ -58,8 +58,8 @@
 
                                             <!-- Teacher Actions -->
                                             <?php if (str_starts_with($req['status'], 'diproses_') && $role !== 'admin' && $role !== 'siswa'): ?>
-                                                <button class="btn btn-sm btn-success" onclick="handleApproval(<?= $req['id'] ?>, 'approve')">Setuju</button>
-                                                <button class="btn btn-sm btn-danger" onclick="handleApproval(<?= $req['id'] ?>, 'reject')">Tolak</button>
+                                                <button class="btn btn-sm btn-success" onclick="handleApproval(<?= $req['id'] ?>, 'approve', this)">Setuju</button>
+                                                <button class="btn btn-sm btn-danger" onclick="handleApproval(<?= $req['id'] ?>, 'reject', this)">Tolak</button>
                                             <?php endif; ?>
 
                                             <a href="<?= base_url('izin-keluar/' . $req['id']) ?>" class="btn btn-sm btn-outline-secondary">Detail</a>
@@ -81,7 +81,7 @@
 
 <!-- Basic JS for handling approvals -->
 <script>
-function handleApproval(id, action) {
+function handleApproval(id, action, element) {
     let url = `<?= base_url('izin-keluar/') ?>${id}`;
     let data = new FormData();
     data.append('_method', 'PUT'); // Method spoofing for RESTful update
@@ -93,12 +93,19 @@ function handleApproval(id, action) {
         data.append('catatan_penolakan', reason);
     }
 
-    // Special case for final approval
-    const status = '<?= $req["status"] ?? "" ?>';
-    if (action === 'approve' && status === 'diproses_guru_piket') {
-        const returnTime = prompt('Masukkan jam kembali siswa (format HH:MM):');
-        if (!returnTime) return; // User cancelled or left empty
-        data.append('jam_kembali', returnTime);
+    // Get the current status from the data attribute of the table row
+    const currentStatus = element.closest('tr').dataset.status;
+
+    if (action === 'approve') {
+        if (currentStatus === 'diajukan') { // Admin assigns to Guru Kelas, can input jam_keluar here
+            const departureTime = prompt('Masukkan jam keluar siswa (format HH:MM):');
+            if (!departureTime) return; // User cancelled or left empty
+            data.append('jam_keluar', departureTime);
+        } else if (currentStatus === 'diproses_guru_piket') { // Guru Piket approves, inputs jam_kembali
+            const returnTime = prompt('Masukkan jam kembali siswa (format HH:MM):');
+            if (!returnTime) return; // User cancelled or left empty
+            data.append('jam_kembali', returnTime);
+        }
     }
 
     fetch(url, {
@@ -124,5 +131,3 @@ function handleApproval(id, action) {
     });
 }
 </script>
-
-<?= $this->endSection() ?>

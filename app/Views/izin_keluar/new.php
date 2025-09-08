@@ -22,7 +22,7 @@
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="jenis_izin" id="keluarga" value="keluarga" required>
-                            <label class="form-check-label" for="keluarga">Keperluan Keluarga</label>
+                            <label class="form-check-label" for="keluarga">Keluarga</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="jenis_izin" id="lainnya" value="lainnya" required>
@@ -35,10 +35,7 @@
                         <textarea name="alasan" id="alasan" class="form-control" rows="3" required></textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="jam_keluar" class="form-label">Jam Keluar</label>
-                        <input type="time" name="jam_keluar" id="jam_keluar" class="form-control" required>
-                    </div>
+                    
 
                     <div class="mb-3">
                         <label for="bersama_siswa_ids" class="form-label">Izin Bersama (opsional)</label>

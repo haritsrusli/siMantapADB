@@ -146,7 +146,7 @@ class IzinKeluarController extends ResourceController
             'siswa_id'   => $this->session->get('user_id'),
             'jenis_izin' => $this->request->getVar('jenis_izin'),
             'alasan'     => $this->request->getVar('alasan'),
-            'jam_keluar' => $this->request->getVar('jam_keluar'),
+            'jam_keluar' => null,
             'status'     => 'diajukan' // Initial status
         ];
 
