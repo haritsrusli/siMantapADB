@@ -59,7 +59,7 @@
                             </thead>
                             <tbody>
                                 <?php if(!empty($kelas)):
-                                    $no = 1; foreach($kelas as $row):
+                                    $no = ($pager->getCurrentPage() - 1) * $pager->getPerPage() + 1; foreach($kelas as $row):
                                  ?>
                                     <tr>
                                         <td><?= $no++ ?></td>
@@ -86,7 +86,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if($row['nama_walikelas']): ?>
+                                            <?php if(!empty($row['nama_walikelas'])): ?>
                                                 <i class="bi bi-person-badge"></i> <?= $row['nama_walikelas'] ?> (<?= $row['nip_walikelas'] ?>)
                                             <?php else: ?>
                                                 <span class="text-muted">-</span>
@@ -113,6 +113,12 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <?php if($pager): ?>
+                        <div class="d-flex justify-content-center mt-4">
+                            <?= $pager->links('default', 'simple_pagination') ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

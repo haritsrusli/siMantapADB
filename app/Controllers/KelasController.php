@@ -8,15 +8,7 @@ use App\Models\User;
 
 class KelasController extends BaseController
 {
-    public function index()
-    {
-        // Check if user is logged in and is admin
-        $session = session();
-        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
-            return redirect()->to('/auth');
-        }
-
-        $kelasModel = new Kelas();
+    $kelasModel = new Kelas();
         $data['kelas'] = $kelasModel->getKelasWithWalikelas();
         
         // Mendapatkan semua user dengan role wali_kelas untuk dropdown
@@ -24,7 +16,6 @@ class KelasController extends BaseController
         $data['walikelas'] = $userModel->where('role', 'wali_kelas')->findAll();
 
         return view('admin/manajemen_kelas', $data);
-    }
     
     public function tambah()
     {

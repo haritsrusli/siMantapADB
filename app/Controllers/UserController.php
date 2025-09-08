@@ -26,11 +26,11 @@ class UserController extends BaseController
         $id_kelas = $this->request->getGet('id_kelas');
 
         // Start building the query
-        $query = $userModel;
+        $userModelBuilder = $userModel;
 
         // Apply search filter
         if (!empty($search)) {
-            $query = $query->groupStart()
+            $userModelBuilder = $userModelBuilder->groupStart()
                            ->like('username', $search)
                            ->orLike('nama_lengkap', $search)
                            ->groupEnd();
@@ -38,15 +38,16 @@ class UserController extends BaseController
 
         // Apply role filter
         if (!empty($role)) {
-            $query = $query->where('role', $role);
+            $userModelBuilder = $userModelBuilder->where('role', $role);
         }
 
         // Apply class filter
         if (!empty($id_kelas)) {
-            $query = $query->where('id_kelas', $id_kelas);
+            $userModelBuilder = $userModelBuilder->where('id_kelas', $id_kelas);
         }
 
-        $data['users'] = $query->findAll();
+        $data['users'] = $userModelBuilder->paginate(10, 'group1');
+        $data['pager'] = $userModel->pager;
         
         // Mendapatkan data kelas untuk ditampilkan
         $data['kelas'] = $kelasModel->findAll();

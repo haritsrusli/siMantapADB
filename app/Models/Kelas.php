@@ -117,4 +117,17 @@ class Kelas extends Model
             ->where('kelas.id', $id)
             ->first();
     }
+
+    // Mendapatkan kelas dengan walikelas dengan paginasi
+    public function getKelasWithWalikelasPaginated($perPage = 10)
+    {
+        return $this->select('kelas.*, 
+                             walikelas.nama_lengkap as nama_walikelas, 
+                             walikelas.username as nip_walikelas')
+            ->join('users walikelas', 'walikelas.id_kelas = kelas.id AND walikelas.role = "wali_kelas"', 'left')
+            ->orderBy('kelas.tingkat', 'ASC')
+            ->orderBy('kelas.jurusan', 'ASC')
+            ->orderBy('kelas.nama_kelas', 'ASC')
+            ->paginate($perPage);
+    }
 }

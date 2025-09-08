@@ -58,7 +58,13 @@
                             </thead>
                             <tbody>
                                 <?php if(!empty($libur_nasional)): ?>
-                                    <?php $no = 1; foreach($libur_nasional as $row): ?>
+                                    <?php
+                                    $no = 1;
+                                    if (isset($pager)) {
+                                        $no = (($pager->getCurrentPage('group3') - 1) * $pager->getPerPage('group3')) + 1;
+                                    }
+                                    foreach($libur_nasional as $row):
+                                ?>
                                         <tr>
                                             <td><?= $no++ ?></td>
                                             <td>
@@ -95,6 +101,9 @@
                                 <?php endif; ?>
                             </tbody>
                         </table>
+                        <div class="d-flex justify-content-center">
+                            <?= $pager->links('group3', 'simple_pagination') ?>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -30,7 +30,8 @@ class Admin extends BaseController
         }
 
         $kelasModel = new \App\Models\Kelas();
-        $data['kelas'] = $kelasModel->getKelasWithWalikelas();
+        $data['kelas'] = $kelasModel->getKelasWithWalikelasPaginated(10);
+        $data['pager'] = $kelasModel->pager;
         
         // Mendapatkan semua user dengan role wali_kelas untuk dropdown
         $userModel = new User();
@@ -228,6 +229,8 @@ class Admin extends BaseController
             
             if ($pengaturanModel->save($defaultData)) {
                 $data['pengaturan'] = $pengaturanModel->first();
+            } else {
+                log_message('error', 'Failed to create default pengaturan: ' . json_encode($pengaturanModel->errors()));
             }
         }
 
@@ -301,21 +304,23 @@ class Admin extends BaseController
             'lokasi_latitude' => $lat,
             'lokasi_longitude' => $lon,
             'radius_meter' => $rad,
+            'lokasi_locked' => isset($pengaturan['lokasi_locked']) ? $pengaturan['lokasi_locked'] : 0,
             'google_maps_api_key' => $googleMapsApiKey,
-            'jam_masuk_senin' => $jamMasukSenin,
-            'jam_pulang_senin' => $jamPulangSenin,
-            'jam_masuk_selasa' => $jamMasukSelasa,
-            'jam_pulang_selasa' => $jamPulangSelasa,
-            'jam_masuk_rabu' => $jamMasukRabu,
-            'jam_pulang_rabu' => $jamPulangRabu,
-            'jam_masuk_kamis' => $jamMasukKamis,
-            'jam_pulang_kamis' => $jamPulangKamis,
-            'jam_masuk_jumat' => $jamMasukJumat,
-            'jam_pulang_jumat' => $jamPulangJumat,
-            'jam_masuk_sabtu' => $jamMasukSabtu,
-            'jam_pulang_sabtu' => $jamPulangSabtu,
-            'jam_masuk_minggu' => $jamMasukMinggu,
-            'jam_pulang_minggu' => $jamPulangMinggu,
+            // Hanya update field jam presensi jika ada nilai yang dikirim
+            'jam_masuk_senin' => !empty($jamMasukSenin) ? $jamMasukSenin : (isset($pengaturan['jam_masuk_senin']) ? $pengaturan['jam_masuk_senin'] : null),
+            'jam_pulang_senin' => !empty($jamPulangSenin) ? $jamPulangSenin : (isset($pengaturan['jam_pulang_senin']) ? $pengaturan['jam_pulang_senin'] : null),
+            'jam_masuk_selasa' => !empty($jamMasukSelasa) ? $jamMasukSelasa : (isset($pengaturan['jam_masuk_selasa']) ? $pengaturan['jam_masuk_selasa'] : null),
+            'jam_pulang_selasa' => !empty($jamPulangSelasa) ? $jamPulangSelasa : (isset($pengaturan['jam_pulang_selasa']) ? $pengaturan['jam_pulang_selasa'] : null),
+            'jam_masuk_rabu' => !empty($jamMasukRabu) ? $jamMasukRabu : (isset($pengaturan['jam_masuk_rabu']) ? $pengaturan['jam_masuk_rabu'] : null),
+            'jam_pulang_rabu' => !empty($jamPulangRabu) ? $jamPulangRabu : (isset($pengaturan['jam_pulang_rabu']) ? $pengaturan['jam_pulang_rabu'] : null),
+            'jam_masuk_kamis' => !empty($jamMasukKamis) ? $jamMasukKamis : (isset($pengaturan['jam_masuk_kamis']) ? $pengaturan['jam_masuk_kamis'] : null),
+            'jam_pulang_kamis' => !empty($jamPulangKamis) ? $jamPulangKamis : (isset($pengaturan['jam_pulang_kamis']) ? $pengaturan['jam_pulang_kamis'] : null),
+            'jam_masuk_jumat' => !empty($jamMasukJumat) ? $jamMasukJumat : (isset($pengaturan['jam_masuk_jumat']) ? $pengaturan['jam_masuk_jumat'] : null),
+            'jam_pulang_jumat' => !empty($jamPulangJumat) ? $jamPulangJumat : (isset($pengaturan['jam_pulang_jumat']) ? $pengaturan['jam_pulang_jumat'] : null),
+            'jam_masuk_sabtu' => !empty($jamMasukSabtu) ? $jamMasukSabtu : (isset($pengaturan['jam_masuk_sabtu']) ? $pengaturan['jam_masuk_sabtu'] : null),
+            'jam_pulang_sabtu' => !empty($jamPulangSabtu) ? $jamPulangSabtu : (isset($pengaturan['jam_pulang_sabtu']) ? $pengaturan['jam_pulang_sabtu'] : null),
+            'jam_masuk_minggu' => !empty($jamMasukMinggu) ? $jamMasukMinggu : (isset($pengaturan['jam_masuk_minggu']) ? $pengaturan['jam_masuk_minggu'] : null),
+            'jam_pulang_minggu' => !empty($jamPulangMinggu) ? $jamPulangMinggu : (isset($pengaturan['jam_pulang_minggu']) ? $pengaturan['jam_pulang_minggu'] : null),
         ];
 
         try {
@@ -324,20 +329,26 @@ class Admin extends BaseController
                 if ($pengaturanModel->update($pengaturan['id'], $data)) {
                     return redirect()->back()->with('success', 'Pengaturan lokasi berhasil diperbarui');
                 } else {
-                    return redirect()->back()->with('error', 'Gagal memperbarui pengaturan lokasi');
+                    $errors = $pengaturanModel->errors();
+                    log_message('error', 'Failed to update pengaturan: ' . json_encode($errors));
+                    $errorMessage = !empty($errors) ? 'Gagal memperbarui pengaturan lokasi: ' . implode(', ', $errors) : 'Gagal memperbarui pengaturan lokasi';
+                    return redirect()->back()->with('error', $errorMessage);
                 }
             } else {
                 // Create new setting
                 if ($pengaturanModel->save($data)) {
                     return redirect()->back()->with('success', 'Pengaturan lokasi berhasil disimpan');
                 } else {
-                    return redirect()->back()->with('error', 'Gagal menyimpan pengaturan lokasi');
+                    $errors = $pengaturanModel->errors();
+                    log_message('error', 'Failed to save pengaturan: ' . json_encode($errors));
+                    $errorMessage = !empty($errors) ? 'Gagal menyimpan pengaturan lokasi: ' . implode(', ', $errors) : 'Gagal menyimpan pengaturan lokasi';
+                    return redirect()->back()->with('error', $errorMessage);
                 }
             }
         } catch (\Exception $e) {
             // Log error
             log_message('error', 'Error saving pengaturan: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan pengaturan lokasi');
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan pengaturan lokasi: ' . $e->getMessage());
         }
     }
 
@@ -352,34 +363,109 @@ class Admin extends BaseController
         $pengaturanModel = new Pengaturan();
         $pengaturan = $pengaturanModel->first();
 
+        // Siapkan data untuk update - hanya field jam presensi yang diisi
         $data = [];
-        // Tambahkan hari Sabtu dan Minggu
+        $errors = [];
         $hariNames = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
 
+        // Log semua data POST untuk debugging
+        log_message('debug', 'POST data: ' . json_encode($this->request->getPost()));
+
+        $post_data = $this->request->getPost();
+
         foreach ($hariNames as $hari) {
-            $data['jam_masuk_' . $hari] = $this->request->getPost('jam_masuk_' . $hari);
-            $data['jam_pulang_' . $hari] = $this->request->getPost('jam_pulang_' . $hari);
+            $jam_masuk_key = 'jam_masuk_' . $hari;
+            $jam_pulang_key = 'jam_pulang_' . $hari;
+            
+            // Untuk jam masuk
+            if (array_key_exists($jam_masuk_key, $post_data)) {
+                $jam_masuk = $post_data[$jam_masuk_key];
+                
+                // Log nilai yang diterima untuk setiap field
+                log_message('debug', "Hari $hari - Jam masuk: '" . $jam_masuk . "' (type: " . gettype($jam_masuk) . ")");
+                
+                if ($jam_masuk === null || $jam_masuk === '') {
+                    $data[$jam_masuk_key] = null;
+                } else {
+                    if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', $jam_masuk)) {
+                        $errors[] = "Format jam masuk " . ucfirst($hari) . " tidak valid (HH:MM atau HH:MM:SS)";
+                    } else {
+                        $data[$jam_masuk_key] = $jam_masuk;
+                    }
+                }
+            }
+            
+            // Untuk jam pulang
+            if (array_key_exists($jam_pulang_key, $post_data)) {
+                $jam_pulang = $post_data[$jam_pulang_key];
+                
+                // Log nilai yang diterima untuk setiap field
+                log_message('debug', "Hari $hari - Jam pulang: '" . $jam_pulang . "' (type: " . gettype($jam_pulang) . ")");
+                
+                if ($jam_pulang === null || $jam_pulang === '') {
+                    $data[$jam_pulang_key] = null;
+                } else {
+                    if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', $jam_pulang)) {
+                        $errors[] = "Format jam pulang " . ucfirst($hari) . " tidak valid (HH:MM atau HH:MM:SS)";
+                    } else {
+                        $data[$jam_pulang_key] = $jam_pulang;
+                    }
+                }
+            }
         }
+
+        // Jika ada error validasi, kembali dengan pesan error
+        if (!empty($errors)) {
+            log_message('error', 'Validation errors in jam presensi: ' . implode(', ', $errors));
+            return redirect()->to('/admin/pengaturan-presensi')->with('error', 'Gagal memperbarui jam presensi: ' . implode(', ', $errors));
+        }
+
+        // Jika tidak ada data yang diisi, kembali dengan pesan
+        if (empty($data)) {
+            return redirect()->to('/admin/pengaturan-presensi')->with('warning', 'Tidak ada data jam presensi yang diisi');
+        }
+
+        // Log data yang akan dikirim untuk debugging
+        log_message('debug', 'Data yang dikirim ke model: ' . json_encode($data));
 
         try {
             if ($pengaturan) {
-                // Update existing setting
+                // Update existing setting - hanya update field jam presensi
                 if ($pengaturanModel->update($pengaturan['id'], $data)) {
                     return redirect()->to('/admin/pengaturan-presensi')->with('success', 'Jam presensi berhasil diperbarui');
                 } else {
-                    return redirect()->to('/admin/pengaturan-presensi')->with('error', 'Gagal memperbarui jam presensi');
+                    // Log error untuk debugging
+                    $modelErrors = $pengaturanModel->errors();
+                    log_message('error', 'Failed to update jam presensi: ' . json_encode($modelErrors));
+                    $errorMessage = !empty($modelErrors) ? 'Gagal memperbarui jam presensi: ' . implode(', ', $modelErrors) : 'Gagal memperbarui jam presensi';
+                    return redirect()->to('/admin/pengaturan-presensi')->with('error', $errorMessage);
                 }
             } else {
                 // Create new setting if no existing one (though it should be created by pengaturanPresensi)
-                if ($pengaturanModel->save($data)) {
+                // Gabungkan dengan data default untuk lokasi
+                $defaultData = [
+                    'lokasi_latitude' => '-6.2088',
+                    'lokasi_longitude' => '106.8456',
+                    'radius_meter' => 50,
+                    'lokasi_locked' => 0,
+                    'google_maps_api_key' => '',
+                ];
+                
+                $saveData = array_merge($defaultData, $data);
+                
+                if ($pengaturanModel->save($saveData)) {
                     return redirect()->to('/admin/pengaturan-presensi')->with('success', 'Jam presensi berhasil disimpan');
                 } else {
-                    return redirect()->to('/admin/pengaturan-presensi')->with('error', 'Gagal menyimpan jam presensi');
+                    // Log error untuk debugging
+                    $modelErrors = $pengaturanModel->errors();
+                    log_message('error', 'Failed to save jam presensi: ' . json_encode($modelErrors));
+                    $errorMessage = !empty($modelErrors) ? 'Gagal menyimpan jam presensi: ' . implode(', ', $modelErrors) : 'Gagal menyimpan jam presensi';
+                    return redirect()->to('/admin/pengaturan-presensi')->with('error', $errorMessage);
                 }
             }
         } catch (\Exception $e) {
             log_message('error', 'Error saving jam presensi: ' . $e->getMessage());
-            return redirect()->to('/admin/pengaturan-presensi')->with('error', 'Terjadi kesalahan saat menyimpan jam presensi');
+            return redirect()->to('/admin/pengaturan-presensi')->with('error', 'Terjadi kesalahan saat menyimpan jam presensi: ' . $e->getMessage());
         }
     }
 
@@ -392,7 +478,8 @@ class Admin extends BaseController
         }
 
         $userModel = new User();
-        $data['siswa'] = $userModel->where('role', 'siswa')->findAll();
+        $data['siswa'] = $userModel->where('role', 'siswa')->paginate(10);
+        $data['pager'] = $userModel->pager;
 
         return view('admin/manajemen_siswa', $data);
     }
@@ -406,11 +493,12 @@ class Admin extends BaseController
         }
 
         $userModel = new User();
-        $data['guru'] = $userModel->whereIn('role', ['guru', 'wali_kelas'])->findAll();
+        $data['guru'] = $userModel->whereIn('role', ['guru', 'wali_kelas'])->paginate(10);
+        $data['pager'] = $userModel->pager;
         
         // Mendapatkan data kelas untuk ditampilkan
         $kelasModel = new \App\Models\Kelas();
-        $data['kelas'] = $kelasModel->findAll();
+        $data['kelas'] = $kelasModel->findAll(); // This is for a dropdown, not paginated
 
         return view('admin/manajemen_guru', $data);
     }

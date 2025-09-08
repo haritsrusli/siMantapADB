@@ -16,7 +16,9 @@ class LiburNasionalController extends BaseController
         }
 
         $liburNasionalModel = new LiburNasional();
-        $data['libur_nasional'] = $liburNasionalModel->orderBy('tahun', 'DESC')->orderBy('tanggal', 'ASC')->findAll();
+        $liburNasionalModelBuilder = $liburNasionalModel->orderBy('tahun', 'DESC')->orderBy('tanggal', 'ASC');
+        $data['libur_nasional'] = $liburNasionalModelBuilder->paginate(10, 'group3');
+        $data['pager'] = $liburNasionalModel->pager;
 
         return view('admin/libur_nasional/index', $data);
     }

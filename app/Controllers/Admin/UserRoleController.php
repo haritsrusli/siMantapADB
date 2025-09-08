@@ -17,9 +17,10 @@ class UserRoleController extends BaseController
         }
 
         $userModel = new User();
-        $users = $userModel->findAll();
+        $users = $userModel->paginate(10, 'group4');
 
         $data['users'] = $users;
+        $data['pager'] = $userModel->pager;
         $data['title'] = 'Manajemen User Roles';
         return view('admin/user_roles/index', $data);
     }

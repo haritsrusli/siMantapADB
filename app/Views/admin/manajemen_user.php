@@ -95,7 +95,11 @@
                             </thead>
                             <tbody>
                                 <?php if(!empty($users)):
-                                    $no = 1; foreach($users as $row):
+                                    $no = 1;
+                                    if (isset($pager)) {
+                                        $no = (($pager->getCurrentPage('group1') - 1) * $pager->getPerPage('group1')) + 1;
+                                    }
+                                    foreach($users as $row):
                                  ?>
                                     <tr>
                                         <td><?= $no++ ?></td>
@@ -156,6 +160,9 @@
                                 <?php endif; ?>
                             </tbody>
                         </table>
+                        <div class="d-flex justify-content-center">
+                            <?= $pager->links('group1', 'simple_pagination') ?>
+                        </div>
                     </div>
                 </div>
             </div>

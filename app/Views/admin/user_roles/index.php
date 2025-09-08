@@ -89,6 +89,9 @@
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                        <div class="d-flex justify-content-center">
+                            <?= $pager->links('group4', 'simple_pagination') ?>
+                        </div>
                     </div>
                 </div>
             </div>
