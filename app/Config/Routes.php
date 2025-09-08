@@ -2,6 +2,22 @@
 
 use CodeIgniter\Router\RouteCollection;
 
+// Izin Keluar Admin Assignment routes
+$routes->group('admin', static function ($routes) {
+    $routes->get('izin-keluar/(:num)/assign', 'IzinKeluarController::assignForm/$1');
+    $routes->post('izin-keluar/(:num)/assign', 'IzinKeluarController::assignAction/$1');
+});
+
+// Izin Keluar Penugasan routes
+$routes->group('admin', static function ($routes) {
+    $routes->get('penugasan-izin', 'IzinKeluarPenugasanController::index');
+    $routes->post('penugasan-izin/assign', 'IzinKeluarPenugasanController::assign');
+    $routes->get('penugasan-izin/unassign/(:num)', 'IzinKeluarPenugasanController::unassign/$1');
+});
+
+// Izin Keluar routes
+$routes->resource('izin-keluar', ['controller' => 'IzinKeluarController']);
+
 /**
  * @var RouteCollection $routes
  */

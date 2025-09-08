@@ -100,6 +100,16 @@
                                 <i class="bi bi-person-badge"></i> User Roles
                             </a>
                         </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="<?= base_url('izin-keluar') ?>" class="btn btn-outline-dark w-100">
+                                <i class="bi bi-calendar-check"></i> Manajemen Izin Keluar
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="<?= base_url('admin/penugasan-izin') ?>" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-person-check-fill"></i> Penugasan Izin
+                            </a>
+                        </div>
                         
                     </div>
                 </div>

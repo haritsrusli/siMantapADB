@@ -46,10 +46,17 @@ class Auth extends BaseController
                     'isLoggedIn' => true,
                 ]);
 
+                $teacherRoles = ['guru', 'wali_kelas', 'wakil_kurikulum', 'guru_piket'];
+
                 if ($user['role'] === 'admin') {
                     return redirect()->to('/admin/dashboard');
-                } else {
+                } else if (in_array($user['role'], $teacherRoles)) {
+                    return redirect()->to('/izin-keluar'); // Redirect teachers to the leave module
+                } else if ($user['role'] === 'siswa') {
                     return redirect()->to('/siswa/dashboard');
+                } else {
+                    // Fallback for any other roles
+                    return redirect()->to('/');
                 }
             } else {
                 return redirect()->back()->with('error', 'Username atau password salah');

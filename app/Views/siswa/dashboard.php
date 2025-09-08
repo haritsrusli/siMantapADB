@@ -51,12 +51,20 @@
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-3 col-6 mb-4 text-center">
+    <div class="row mt-4 justify-content-center">
+        <div class="col-md-2 col-4 mb-4 text-center">
             <a href="<?= base_url('siswa/presensi') ?>" class="text-decoration-none text-dark">
                 <div class="py-3">
                     <i class="bi bi-calendar-check text-primary" style="font-size: 3.5rem;"></i>
                     <h6 class="mt-2">Presensi</h6>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-2 col-4 mb-4 text-center">
+            <a href="<?= base_url('izin-keluar') ?>" class="text-decoration-none text-dark">
+                <div class="py-3">
+                    <i class="bi bi-box-arrow-right text-success" style="font-size: 3.5rem;"></i>
+                    <h6 class="mt-2">Izin Keluar</h6>
                 </div>
             </a>
         </div>
