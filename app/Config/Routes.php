@@ -6,6 +6,10 @@ use CodeIgniter\Router\RouteCollection;
 $routes->group('admin', static function ($routes) {
     $routes->get('izin-keluar/(:num)/assign', 'IzinKeluarController::assignForm/$1');
     $routes->post('izin-keluar/(:num)/assign', 'IzinKeluarController::assignAction/$1');
+    $routes->get('izin-keluar/reset/(:num)', 'IzinKeluarController::reset/$1');
+    // Route for penugasan from assign form
+    $routes->post('izin-keluar/(:num)/assign-penugasan', 'IzinKeluarController::assignPenugasan/$1');
+    $routes->get('izin-keluar/(:num)/unassign-penugasan/(:num)', 'IzinKeluarController::unassignPenugasan/$1/$2');
 });
 
 // Izin Keluar Penugasan routes
@@ -16,6 +20,7 @@ $routes->group('admin', static function ($routes) {
 });
 
 // Izin Keluar routes
+$routes->get('izin-keluar/remove/(:num)', 'IzinKeluarController::delete/$1');
 $routes->resource('izin-keluar', ['controller' => 'IzinKeluarController']);
 
 /**

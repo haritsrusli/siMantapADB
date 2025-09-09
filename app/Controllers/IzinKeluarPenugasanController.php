@@ -23,8 +23,8 @@ class IzinKeluarPenugasanController extends BaseController
         $userModel = new User();
         $penugasanModel = new IzinKeluarPenugasan();
 
-        // Get all teachers that can be assigned
-        $data['teachers'] = $userModel->whereIn('role', ['guru', 'wali_kelas', 'admin'])->findAll();
+        // Get all teachers that can be assigned (guru and admin)
+        $data['teachers'] = $userModel->whereIn('role', ['guru', 'admin'])->findAll();
 
         // Get current assignments with user names
         $data['assignments'] = $penugasanModel
@@ -43,7 +43,6 @@ class IzinKeluarPenugasanController extends BaseController
 
         $data['available_roles'] = ['guru_kelas', 'wakil_kurikulum', 'guru_piket'];
 
-        // The view file will be created in the next step
         return view('admin/penugasan_izin/index', $data);
     }
 
@@ -61,6 +60,24 @@ class IzinKeluarPenugasanController extends BaseController
         // Basic validation
         if (empty($userId) || empty($role)) {
             return redirect()->back()->with('error', 'User dan Role harus dipilih.');
+        }
+
+        // Validate role
+        $availableRoles = ['guru_kelas', 'wakil_kurikulum', 'guru_piket'];
+        if (!in_array($role, $availableRoles)) {
+            return redirect()->back()->with('error', 'Role tidak valid.');
+        }
+
+        // Check if user exists and has appropriate role
+        $userModel = new User();
+        $user = $userModel->find($userId);
+        if (!$user) {
+            return redirect()->back()->with('error', 'User tidak ditemukan.');
+        }
+
+        // Check if user has appropriate role (guru or admin)
+        if (!in_array($user['role'], ['guru', 'admin'])) {
+            return redirect()->back()->with('error', 'Hanya Guru atau Admin yang dapat ditugaskan untuk peran ini.');
         }
 
         // Check if assignment already exists
@@ -88,6 +105,12 @@ class IzinKeluarPenugasanController extends BaseController
         }
 
         $penugasanModel = new IzinKeluarPenugasan();
+
+        // Check if assignment exists
+        $assignment = $penugasanModel->find($id);
+        if (!$assignment) {
+            return redirect()->back()->with('error', 'Tugas tidak ditemukan.');
+        }
 
         if ($penugasanModel->delete($id)) {
             return redirect()->back()->with('success', 'Tugas berhasil dihapus.');

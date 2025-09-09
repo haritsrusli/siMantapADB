@@ -240,8 +240,16 @@
                     video.srcObject = stream;
                 })
                 .catch(err => {
-                    console.log("Error accessing camera: " + err);
-                    cameraCard.querySelector('.card-body').innerHTML = `<div class='text-center'><i class='bi bi-camera-video-off text-danger' style='font-size: 2rem;'></i><p class='text-danger mt-2'>Gagal mengakses kamera. Pastikan izin kamera telah diberikan.</p></div>`;
+                    console.error("Error accessing camera: ", err);
+                    let message = "Gagal mengakses kamera. Pastikan izin kamera telah diberikan.";
+                    if (err.name === 'NotAllowedError') {
+                        message = "Anda telah memblokir akses kamera. Harap izinkan akses kamera di pengaturan browser Anda untuk melanjutkan.";
+                    } else if (err.name === 'NotFoundError') {
+                        message = "Tidak ada kamera yang ditemukan di perangkat Anda.";
+                    } else if (err.name === 'NotReadableError') {
+                        message = "Kamera sedang digunakan oleh aplikasi lain atau ada masalah dengan driver kamera.";
+                    }
+                    cameraCard.querySelector('.card-body').innerHTML = `<div class='text-center'><i class='bi bi-camera-video-off text-danger' style='font-size: 2rem;'></i><p class='text-danger mt-2'>${message}</p></div>`;
                 });
         }
         

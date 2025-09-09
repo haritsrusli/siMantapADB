@@ -21,7 +21,10 @@ class IzinKeluarPenugasan extends Model
     protected $useTimestamps = false;
 
     // Validation
-    protected $validationRules      = [];
+    protected $validationRules      = [
+        'user_id' => 'required|integer',
+        'role'    => 'required|in_list[guru_kelas,wakil_kurikulum,guru_piket]',
+    ];
     protected $validationMessages   = [];
     protected $skipValidation       = false;
     protected $cleanValidationRules = true;
