@@ -47,9 +47,9 @@
                         <select name="status" id="status" class="form-select">
                             <option value="">Semua Status</option>
                             <option value="diajukan" <?= (isset($status_filter) && $status_filter == 'diajukan') ? 'selected' : '' ?>>Diajukan</option>
-                            <option value="diproses_guru_kelas" <?= (isset($status_filter) && $status_filter == 'diproses_guru_kelas') ? 'selected' : '' ?>>Diproses Guru Kelas</option>
+                            <option value="diproses_guru_kelas" <?= (isset($status_filter) && $status_filter == 'diproses_guru_kelas') ? 'selected' : '' ?>>Diproses Guru Mapel</option>
                             <option value="diproses_wali_kelas" <?= (isset($status_filter) && $status_filter == 'diproses_wali_kelas') ? 'selected' : '' ?>>Diproses Wali Kelas</option>
-                            <option value="diproses_wakil_kurikulum" <?= (isset($status_filter) && $status_filter == 'diproses_wakil_kurikulum') ? 'selected' : '' ?>>Diproses Wakil Kurikulum</option>
+                            <option value="diproses_wakil_kesiswaan" <?= (isset($status_filter) && $status_filter == 'diproses_wakil_kesiswaan') ? 'selected' : '' ?>>Diproses Wakil Kesiswaan</option>
                             <option value="diproses_guru_piket" <?= (isset($status_filter) && $status_filter == 'diproses_guru_piket') ? 'selected' : '' ?>>Diproses Guru Piket</option>
                             <option value="disetujui" <?= (isset($status_filter) && $status_filter == 'disetujui') ? 'selected' : '' ?>>Disetujui</option>
                             <option value="ditolak" <?= (isset($status_filter) && $status_filter == 'ditolak') ? 'selected' : '' ?>>Ditolak</option>
@@ -125,9 +125,9 @@
                                                 // More descriptive status texts for all roles
                                                 $friendly_map = [
                                                     'diajukan' => 'Diajukan',
-                                                    'diproses_guru_kelas' => 'Proses Guru Kelas',
+                                                    'diproses_guru_kelas' => 'Proses Guru Mapel',
                                                     'diproses_wali_kelas' => 'Proses Wali Kelas',
-                                                    'diproses_wakil_kurikulum' => 'Proses Wakil Kurikulum',
+                                                    'diproses_wakil_kesiswaan' => 'Proses Wakil Kesiswaan',
                                                     'diproses_guru_piket' => 'Proses Guru Piket',
                                                     'disetujui' => 'Disetujui',
                                                     'ditolak' => 'Ditolak'
@@ -156,7 +156,7 @@
                                             
                                             <!-- Admin Action -->
                                             <?php if ($role === 'admin'): ?>
-                                                <?php if ($req['status'] === 'diajukan' || $req['status'] === 'diproses_guru_kelas'): ?>
+                                                <?php if ($req['status'] !== 'disetujui' && $req['status'] !== 'ditolak'): ?>
                                                     <a href="<?= base_url('admin/izin-keluar/' . $req['id'] . '/assign') ?>" class="btn btn-sm btn-outline-primary" title="Tugaskan/Ubah Penugasan">
                                                         <i class="bi bi-person-plus"></i>
                                                     </a>
@@ -164,6 +164,10 @@
                                                     <a href="<?= base_url('admin/izin-keluar/reset/' . $req['id']) ?>" class="btn btn-sm btn-outline-warning" title="Buka Kembali Pengajuan" onclick="return confirm('Anda yakin ingin membuka kembali pengajuan ini? Status akan kembali ke Diajukan dan data persetujuan sebelumnya akan dihapus.')">
                                                         <i class="bi bi-arrow-counterclockwise"></i>
                                                     </a>
+                                                <?php elseif ($req['status'] === 'disetujui'): ?>
+                                                    <button class="btn btn-sm btn-outline-secondary" disabled title="Tidak dapat dibuka kembali karena sudah disetujui">
+                                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                                    </button>
                                                 <?php endif; ?>
                                             <?php endif; ?>
 
@@ -173,7 +177,7 @@
                                                     <button class="btn btn-success" onclick="handleApproval(<?= $req['id'] ?>, 'approve', this)" title="Setujui">
                                                         <i class="bi bi-check-lg"></i>
                                                     </button>
-                                                    <button class="btn btn-danger" onclick="handleApproval(<?= $req['id'] ?>, 'reject', this)" title="Tolak">
+                                                    <button class="btn btn-danger" onclick="toggleRejectionForm(<?= $req['id'] ?>)" title="Tolak">
                                                         <i class="bi bi-x-lg"></i>
                                                     </button>
                                                 </div>
@@ -181,7 +185,6 @@
 
                                             <!-- Student Actions -->
                                             <?php if ($role === 'siswa' && $req['siswa_id'] == session()->get('user_id')): ?>
-                                                <!-- Tombol hapus dengan kondisi -->
                                                 <?php 
                                                 // Cek apakah izin sudah disetujui oleh semua pihak
                                                 $isFullyApproved = ($req['status'] === 'disetujui');
@@ -202,6 +205,22 @@
                                             <a href="<?= base_url('izin-keluar/' . $req['id']) ?>" class="btn btn-sm btn-outline-secondary">
                                                 <i class="bi bi-eye"></i>
                                             </a>
+                                        </td>
+                                    </tr>
+                                    <tr id="rejection-form-<?= $req['id'] ?>" style="display: none;" class="rejection-row">
+                                        <td colspan="8" class="p-0">
+                                            <div class="p-3 bg-light border-top">
+                                                <form onsubmit="submitRejection(event, <?= $req['id'] ?>)">
+                                                    <div class="mb-2">
+                                                        <label for="catatan_penolakan_<?= $req['id'] ?>" class="form-label fw-bold">Alasan Penolakan</label>
+                                                        <textarea id="catatan_penolakan_<?= $req['id'] ?>" name="catatan_penolakan" class="form-control" rows="3" required placeholder="Masukkan alasan mengapa permintaan ini ditolak..."></textarea>
+                                                    </div>
+                                                    <div class="d-flex justify-content-end">
+                                                        <button type="button" class="btn btn-sm btn-secondary me-2" onclick="toggleRejectionForm(<?= $req['id'] ?>)">Batal</button>
+                                                        <button type="submit" class="btn btn-sm btn-danger">Kirim Penolakan</button>
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -256,30 +275,99 @@
 
 <?= $this->section('scripts') ?>
 <script>
-// Handle approval actions
+function toggleRejectionForm(id) {
+    document.querySelectorAll('.rejection-row').forEach(row => {
+        if (row.id !== `rejection-form-${id}`) {
+            row.style.display = 'none';
+        }
+    });
+    const formRow = document.getElementById(`rejection-form-${id}`);
+    if (formRow) {
+        formRow.style.display = formRow.style.display === 'none' ? 'table-row' : 'none';
+    }
+}
+
+function submitRejection(event, id) {
+    event.preventDefault();
+    const form = event.target;
+    const textarea = form.querySelector('textarea[name="catatan_penolakan"]');
+    const reason = textarea.value;
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    if (!reason.trim()) {
+        showNotification('Alasan penolakan tidak boleh kosong.', 'error');
+        textarea.focus();
+        return;
+    }
+
+    let url = `<?= base_url('izin-keluar/') ?>${id}`;
+    let data = new FormData();
+    data.append('_method', 'PUT');
+    data.append('action', 'reject');
+    data.append('catatan_penolakan', reason);
+
+    const originalButtonContent = submitButton.innerHTML;
+    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Mengirim...';
+    submitButton.disabled = true;
+
+    fetch(url, {
+        method: 'POST',
+        body: data,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            '<?= csrf_header() ?>': '<?= csrf_hash() ?>'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Try to parse error response, but fallback if it's not JSON
+            return response.json().catch(() => {
+                throw new Error(`Server responded with status: ${response.status}`)
+            }).then(errData => {
+                throw errData; // Throw parsed error data
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            showNotification(data.message || 'Permintaan berhasil ditolak.', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            // Handle structured errors from the backend
+            const errorMsg = data.message || 'Terjadi kesalahan tidak diketahui.';
+            showNotification(errorMsg, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const errorMsg = error.message || 'Tidak dapat memproses permintaan ke server.';
+        showNotification(errorMsg, 'error');
+    })
+    .finally(() => {
+        submitButton.innerHTML = originalButtonContent;
+        submitButton.disabled = false;
+    });
+}
+
 function handleApproval(id, action, element) {
     let url = `<?= base_url('izin-keluar/') ?>${id}`;
     let data = new FormData();
     data.append('_method', 'PUT');
     data.append('action', action);
 
-    if (action === 'reject') {
-        const reason = prompt('Silakan masukkan alasan penolakan:');
-        if (reason === null) return;
-        data.append('catatan_penolakan', reason);
-    }
-
     const currentStatus = element.closest('tr').dataset.status;
 
-    if (action === 'approve') {
-        if (currentStatus === 'diproses_guru_piket') {
-            const returnTime = prompt('Masukkan jam kembali siswa (format HH:MM):');
-            if (!returnTime) return;
-            data.append('jam_kembali', returnTime);
+    if (action === 'approve' && currentStatus === 'diproses_guru_piket') {
+        const returnTime = prompt('Masukkan jam kembali siswa (format HH:MM):');
+        if (returnTime === null) return; // User cancelled
+        if (!returnTime.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+            showNotification('Format jam tidak valid. Gunakan format HH:MM.', 'error');
+            return;
         }
+        data.append('jam_kembali', returnTime);
     }
 
-    // Show loading indicator
     const originalContent = element.innerHTML;
     element.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
     element.disabled = true;
@@ -292,19 +380,29 @@ function handleApproval(id, action, element) {
             '<?= csrf_header() ?>': '<?= csrf_hash() ?>'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+         if (!response.ok) {
+            return response.json().catch(() => {
+                throw new Error(`Server responded with status: ${response.status}`)
+            }).then(errData => {
+                throw errData; // Throw parsed error data
+            });
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.status === 'success' || (data.status && data.status === 200)) {
-            alert('Aksi berhasil.');
-            location.reload();
+        if (data.status === 'success') {
+            showNotification(data.message || 'Aksi berhasil.', 'success');
+            setTimeout(() => location.reload(), 1500);
         } else {
-            const errorMsg = data.message || data.messages?.error || 'Unknown error';
-            alert('Terjadi kesalahan: ' + errorMsg);
+            const errorMsg = data.message || 'Terjadi kesalahan tidak diketahui.';
+            showNotification(errorMsg, 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Tidak dapat memproses permintaan.');
+        const errorMsg = error.message || 'Tidak dapat memproses permintaan ke server.';
+        showNotification(errorMsg, 'error');
     })
     .finally(() => {
         element.innerHTML = originalContent;

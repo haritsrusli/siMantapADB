@@ -24,19 +24,6 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <?php if(session()->getFlashdata('success')): ?>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <?= session()->getFlashdata('success') ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if(session()->getFlashdata('error')): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <?= session()->getFlashdata('error') ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <?php endif; ?>
                     
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-secondary btn-sm">

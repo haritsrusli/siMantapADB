@@ -77,33 +77,44 @@ class IzinKeluarController extends ResourceController
                 $data['izin_requests'] = $model->where('siswa_id', $userId)->findAll();
                 break;
             default: // Handles all teacher roles
-                // Find which approval roles this user is assigned to
-                $assignedRoles = $penugasanModel->where('user_id', $userId)->findColumn('role');
-                
-                // Also check for additional roles from user_roles table
-                $userModel = new User();
-                $additionalRoles = $userModel->getUserRoles($userId);
-                $allRoles = array_unique(array_merge($assignedRoles ?? [], $additionalRoles));
-                
+                $userModel = new User(); // Ensure user model is available
+
+                // Base query builder
+                $builder = $model->groupStart();
+
+                // 1. Requests directly assigned to this user as Guru Kelas
+                $builder->orGroupStart()
+                        ->where('status', 'diproses_guru_kelas')
+                        ->where('guru_kelas_id', $userId)
+                        ->groupEnd();
+
+                // 2. Requests directly assigned to this user as Wali Kelas
+                $builder->orGroupStart()
+                        ->where('status', 'diproses_wali_kelas')
+                        ->where('wali_kelas_id', $userId)
+                        ->groupEnd();
+
+                // 3. Requests for roles assigned via penugasan or user_roles
+                $assignedRoles = $penugasanModel->where('user_id', $userId)->findColumn('role') ?? [];
+                $additionalRoles = $userModel->getUserRoles($userId) ?? [];
+                $allRoles = array_unique(array_merge($assignedRoles, $additionalRoles));
+
                 $statusesToQuery = [];
-                if ($allRoles) {
-                    foreach ($allRoles as $assignedRole) {
-                        // Map the assigned role to a status
-                        $statusesToQuery[] = 'diproses_' . $assignedRole;
+                if (!empty($allRoles)) {
+                    foreach ($allRoles as $roleName) {
+                        // These are handled by direct ID checks above
+                        if ($roleName === 'guru_kelas' || $roleName === 'wali_kelas') {
+                            continue;
+                        }
+                        $statusesToQuery[] = 'diproses_' . $roleName;
                     }
                 }
 
-                // Also check for requests directly assigned to this user as guru_kelas
-                $builder = $model->groupStart()
-                                ->whereIn('status', $statusesToQuery);
-                
-                // Special handling for guru_kelas
-                if (in_array('guru_kelas', $allRoles)) {
-                    $builder->orWhere('guru_kelas_id', $userId);
+                if (!empty($statusesToQuery)) {
+                    $builder->orWhereIn('status', $statusesToQuery);
                 }
-                
-                $data['izin_requests'] = $builder->groupEnd()
-                                                ->findAll();
+
+                $data['izin_requests'] = $builder->groupEnd()->findAll();
                 break;
         }
 
@@ -135,6 +146,24 @@ class IzinKeluarController extends ResourceController
 
         if (!$data['izin']) {
             return $this->failNotFound('Permintaan izin tidak ditemukan');
+        }
+
+        // Determine at which stage the rejection happened, if applicable
+        if ($data['izin']['status'] === 'ditolak') {
+            $izinData = $data['izin'];
+            $penolak_id = $izinData['penolak_id'];
+            $rejected_stage = null;
+
+            if ($penolak_id == $izinData['guru_kelas_id']) {
+                $rejected_stage = 'diproses_guru_kelas';
+            } elseif ($penolak_id == $izinData['wali_kelas_id']) {
+                $rejected_stage = 'diproses_wali_kelas';
+            } elseif ($penolak_id == $izinData['wakil_kurikulum_id']) {
+                $rejected_stage = 'diproses_wakil_kesiswaan'; // Note: column name is still wakil_kurikulum_id
+            } elseif ($penolak_id == $izinData['guru_piket_id']) {
+                $rejected_stage = 'diproses_guru_piket';
+            }
+            $data['izin']['rejected_at_stage'] = $rejected_stage;
         }
 
         // Add authorization check later if needed
@@ -240,6 +269,9 @@ class IzinKeluarController extends ResourceController
      */
     public function update($id = null)
     {
+        log_message('debug', 'IzinKeluarController@update: Request received for ID ' . $id);
+        log_message('debug', 'IzinKeluarController@update: Session User ID: ' . $this->session->get('user_id') . ', Role: ' . $this->session->get('role'));
+
         if (!$this->session->get('isLoggedIn')) {
             return $this->failUnauthorized('Anda harus login.');
         }
@@ -263,6 +295,8 @@ class IzinKeluarController extends ResourceController
         $status = $izin['status'];
         $userRole = $this->session->get('role');
 
+        log_message('debug', 'IzinKeluarController@update: Current Izin Status: ' . $status . ', Action: ' . $action);
+
         // Check if user has specific role assignment for this stage
         if ($status === 'diproses_guru_kelas' && $izin['guru_kelas_id'] == $userId) {
             $hasPermission = true;
@@ -284,29 +318,7 @@ class IzinKeluarController extends ResourceController
             }
         }
 
-        // Special handling for rejection - allow users with appropriate roles to reject
-        if ($action === 'reject') {
-            // Check if user is directly assigned to this request
-            if (($status === 'diproses_guru_kelas' && $izin['guru_kelas_id'] == $userId) ||
-                ($status === 'diproses_wali_kelas' && $izin['wali_kelas_id'] == $userId)) {
-                $hasPermission = true;
-            } else {
-                // Check penugasan table
-                $penugasanModel = new IzinKeluarPenugasan();
-                $requiredRole = str_replace('diproses_', '', $status);
-                $isAssigned = $penugasanModel->where('user_id', $userId)->where('role', $requiredRole)->first();
-                
-                if ($isAssigned) {
-                    $hasPermission = true;
-                } else {
-                    // Check user_roles table
-                    $userModel = new User();
-                    if ($userModel->userHasRole($userId, $requiredRole)) {
-                        $hasPermission = true;
-                    }
-                }
-            }
-        }
+        
 
         // Additional check: If user is a teacher with multiple roles, check if they have the required role
         if (!$hasPermission) {
@@ -318,6 +330,8 @@ class IzinKeluarController extends ResourceController
                 $hasPermission = true;
             }
         }
+
+        log_message('debug', 'IzinKeluarController@update: Has Permission: ' . ($hasPermission ? 'true' : 'false'));
 
         if (!$hasPermission) {
             return $this->failForbidden('Anda tidak memiliki izin untuk memproses tahap ini.');
@@ -336,9 +350,9 @@ class IzinKeluarController extends ResourceController
                     $newData['status'] = 'diproses_wali_kelas';
                     break;
                 case 'diproses_wali_kelas':
-                    $newData['status'] = 'diproses_wakil_kurikulum';
+                    $newData['status'] = 'diproses_wakil_kesiswaan';
                     break;
-                case 'diproses_wakil_kurikulum':
+                case 'diproses_wakil_kesiswaan':
                     $newData['status'] = 'diproses_guru_piket';
                     break;
                 case 'diproses_guru_piket':
@@ -351,16 +365,24 @@ class IzinKeluarController extends ResourceController
                     $newData['jam_kembali'] = $jam_kembali ?: $izin['jam_kembali']; // Preserve existing if not provided
                     break;
                 default:
-                    return $this->fail('Status izin tidak valid untuk persetujuan.');
+                    return $this->fail(['status' => 'error', 'message' => 'Status izin tidak valid untuk persetujuan.']);
             }
         } else {
-            return $this->fail('Aksi tidak valid.');
+            return $this->fail(['status' => 'error', 'message' => 'Aksi tidak valid.']);
         }
 
-        if ($model->update($id, $newData)) {
-            return $this->respondUpdated($newData, 'Status izin berhasil diperbarui.');
+        log_message('debug', 'IzinKeluarController@update: New Data for Update: ' . json_encode($newData));
+
+        $updateResult = $model->update($id, $newData);
+        log_message('debug', 'IzinKeluarController@update: Model Update Result: ' . ($updateResult ? 'true' : 'false'));
+        log_message('debug', 'IzinKeluarController@update: Model Errors: ' . json_encode($model->errors()));
+
+        if ($updateResult) {
+            return $this->respond(['status' => 'success', 'message' => 'Status izin berhasil diperbarui.']);
         } else {
-            return $this->fail($model->errors());
+            $errors = $model->errors();
+            $errorMessage = !empty($errors) ? implode(', ', $errors) : 'Gagal memperbarui status izin. Silakan coba lagi.';
+            return $this->fail(['status' => 'error', 'message' => $errorMessage]);
         }
     }
 
@@ -376,8 +398,8 @@ class IzinKeluarController extends ResourceController
         }
 
         $izinModel = new IzinKeluar();
-        $penugasanModel = new IzinKeluarPenugasan();
-        $userModel = new User();
+        $userRoleModel = new \App\Models\UserRole();
+        $userModel = new User(); // Load the User model
 
         $data['izin'] = $izinModel
             ->select('izin_keluar.*, users.nama_lengkap as nama_siswa')
@@ -388,30 +410,16 @@ class IzinKeluarController extends ResourceController
             return $this->failNotFound('Permintaan izin tidak ditemukan.');
         }
 
-        // Izinkan akses untuk status 'diajukan' dan 'diproses_guru_kelas'
-        // agar admin bisa melakukan penugasan ulang jika diperlukan
-        if ($data['izin']['status'] !== 'diajukan' && $data['izin']['status'] !== 'diproses_guru_kelas') {
-            return $this->failNotFound('Permintaan izin tidak dapat ditugaskan ulang.');
+        // Izinkan akses selama status belum 'disetujui' atau 'ditolak'
+        if ($data['izin']['status'] === 'disetujui' || $data['izin']['status'] === 'ditolak') {
+            return $this->failNotFound('Permintaan izin tidak dapat ditugaskan ulang karena sudah selesai atau ditolak.');
         }
 
-        // Get data for penugasan section - hanya guru dan admin
-        $data['teachers'] = $userModel->whereIn('role', ['guru', 'admin'])->findAll();
-        $data['assignments'] = $penugasanModel
-            ->select('izin_keluar_penugasan.*, users.nama_lengkap')
-            ->join('users', 'users.id = izin_keluar_penugasan.user_id')
-            ->findAll();
-
-        // Group assignments by role for easy display in the view
-        $data['grouped_assignments'] = [];
-        foreach ($data['assignments'] as $assignment) {
-            $data['grouped_assignments'][$assignment['role']][] = $assignment;
-        }
-
-        // Get automatic Wali Kelas from the User table
-        $data['auto_walikelas'] = $userModel->where('role', 'wali_kelas')->findAll();
-        
-        // Available roles for penugasan
-        $data['available_roles'] = ['guru_kelas', 'wakil_kurikulum', 'guru_piket'];
+        // Get user lists
+        $data['guru_mapel_list'] = $userModel->where('role', 'guru')->findAll(); // All users with main role 'guru'
+        $data['wali_kelas_list'] = $userRoleModel->getUsersByRole('wali_kelas');
+        $data['wakil_kesiswaan_list'] = $userRoleModel->getUsersByRole('wakil_kesiswaan');
+        $data['guru_piket_list'] = $userRoleModel->getUsersByRole('guru_piket');
 
         // This will be a view file
         return view('admin/izin_keluar/assign_form', $data);
@@ -439,6 +447,7 @@ class IzinKeluarController extends ResourceController
         $jamKeluar = $this->request->getPost('jam_keluar');
         $jamKembali = $this->request->getPost('jam_kembali');
         $guruKelasId = $this->request->getPost('guru_kelas_id');
+        $waliKelasId = $this->request->getPost('wali_kelas_id'); // Get wali_kelas_id
         $wakilKurikulumId = $this->request->getPost('wakil_kurikulum_id');
         $guruPiketId = $this->request->getPost('guru_piket_id');
 
@@ -449,6 +458,9 @@ class IzinKeluarController extends ResourceController
         }
         if (empty($guruKelasId)) {
             $validationErrors[] = 'Guru Kelas harus dipilih.';
+        }
+        if (empty($waliKelasId)) { // Validate wali_kelas_id
+            $validationErrors[] = 'Wali Kelas harus dipilih.';
         }
         if (empty($wakilKurikulumId)) {
             $validationErrors[] = 'Wakil Kurikulum harus dipilih.';
@@ -482,6 +494,7 @@ class IzinKeluarController extends ResourceController
             'jam_keluar'         => $jamKeluar,
             'jam_kembali'        => $jamKembali ?: null,
             'guru_kelas_id'      => $guruKelasId,
+            'wali_kelas_id'      => $waliKelasId, // Add to data array
             'wakil_kurikulum_id' => $wakilKurikulumId,
             'guru_piket_id'      => $guruPiketId,
         ];

@@ -65,12 +65,12 @@ $routes->post('/admin/libur-nasional/update/(:num)', 'LiburNasionalController::u
 $routes->get('/admin/libur-nasional/hapus/(:num)', 'LiburNasionalController::hapus/$1');
 
 // Admin - Manajemen Kelas
-$routes->get('/admin/kelas', 'Admin::kelas');
-$routes->get('/admin/kelas/tambah', 'Admin::tambahKelas');
-$routes->post('/admin/kelas/simpan', 'Admin::simpanKelas');
-$routes->get('/admin/kelas/edit/(:num)', 'Admin::editKelas/$1');
-$routes->post('/admin/kelas/update/(:num)', 'Admin::updateKelas/$1');
-$routes->get('/admin/kelas/hapus/(:num)', 'Admin::hapusKelas/$1');
+$routes->get('/admin/kelas', 'KelasController::index');
+$routes->get('/admin/kelas/tambah', 'KelasController::tambah');
+$routes->post('/admin/kelas/simpan', 'KelasController::simpan');
+$routes->get('/admin/kelas/edit/(:num)', 'KelasController::edit/$1');
+$routes->post('/admin/kelas/update/(:num)', 'KelasController::update/$1');
+$routes->get('/admin/kelas/hapus/(:num)', 'KelasController::hapus/$1');
 
 // Admin - Manajemen User Roles
 $routes->get('/admin/user-roles', 'Admin\UserRoleController::index');

@@ -26,7 +26,8 @@ class UserController extends BaseController
         $id_kelas = $this->request->getGet('id_kelas');
 
         // Start building the query
-        $userModelBuilder = $userModel;
+        $userModelBuilder = $userModel->select('users.*, kelas.nama_kelas as wali_kelas_nama_kelas')
+                                             ->join('kelas', 'kelas.wali_kelas_user_id = users.id', 'left');
 
         // Apply search filter
         if (!empty($search)) {
@@ -49,6 +50,8 @@ class UserController extends BaseController
         $data['users'] = $userModelBuilder->paginate(10, 'group1');
         $data['pager'] = $userModel->pager;
         
+        log_message('debug', 'UserController@index: Users data passed to view: ' . json_encode($data['users']));
+
         // Mendapatkan data kelas untuk ditampilkan
         $data['kelas'] = $kelasModel->findAll();
 

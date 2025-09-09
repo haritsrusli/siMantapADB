@@ -17,6 +17,7 @@ class Kelas extends Model
         'tingkat',
         'jurusan',
         'tahun_ajaran',
+        'wali_kelas_user_id',
         'created_at',
         'updated_at'
     ];
@@ -40,6 +41,7 @@ class Kelas extends Model
         'tingkat' => 'required|in_list[X,XI,XII]',
         'jurusan' => 'required|max_length[100]',
         'tahun_ajaran' => 'permit_empty|max_length[9]', // Format: 2024/2025
+        'wali_kelas_user_id' => 'permit_empty|integer',
     ];
     protected $validationMessages   = [
         'nama_kelas' => [

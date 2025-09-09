@@ -36,7 +36,6 @@
                                     <option value="">Pilih Role</option>
                                     <option value="siswa">Siswa</option>
                                     <option value="guru">Guru</option>
-                                    <option value="wali_kelas">Wali Kelas</option>
                                 </select>
                             </div>
                             
@@ -70,7 +69,7 @@
                             
                             <div class="col-md-12 mb-3" id="kelasField" style="display: none;">
                                 <label for="id_kelas" class="form-label">
-                                    <i class="bi bi-book"></i> Kelas
+                                    <i class="bi bi-book"></i> Kelas (Hanya untuk Siswa)
                                 </label>
                                 <select class="form-select" id="id_kelas" name="id_kelas">
                                     <option value="">Pilih Kelas</option>
@@ -125,12 +124,9 @@
             nisField.style.display = 'block';
             nisInput.setAttribute('required', 'required');
             kelasField.style.display = 'block';
-        } else if (this.value === 'guru' || this.value === 'wali_kelas') {
+        } else if (this.value === 'guru') {
             nipField.style.display = 'block';
             nipInput.setAttribute('required', 'required');
-            if (this.value === 'wali_kelas') {
-                kelasField.style.display = 'block';
-            }
         }
     });
     </script>

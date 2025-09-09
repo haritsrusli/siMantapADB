@@ -122,19 +122,25 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php 
-                                            // Cari nama kelas berdasarkan id_kelas
-                                            $nama_kelas = '-';
-                                            if($row['id_kelas'] && !empty($kelas)) {
-                                                foreach($kelas as $k) {
-                                                    if($k['id'] == $row['id_kelas']) {
-                                                        $nama_kelas = $k['nama_kelas'];
-                                                        break;
+                                            <?php if ($row['role'] === 'guru' && !empty($row['wali_kelas_nama_kelas'])): ?>
+                                                <i class="bi bi-book"></i> <?= esc($row['wali_kelas_nama_kelas']) ?>
+                                            <?php elseif ($row['role'] === 'siswa' && !empty($row['id_kelas'])): ?>
+                                                <?php 
+                                                // Find class name for student based on id_kelas
+                                                $student_class_name = '-';
+                                                if (!empty($kelas)) {
+                                                    foreach($kelas as $k) {
+                                                        if($k['id'] == $row['id_kelas']) {
+                                                            $student_class_name = $k['nama_kelas'];
+                                                            break;
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            echo $nama_kelas;
-                                            ?>
+                                                echo esc($student_class_name);
+                                                ?>
+                                            <?php else: ?>
+                                                -
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <?php if($row['role'] != 'admin'): ?>

@@ -148,26 +148,44 @@
                 <div class="list-group list-group-flush">
                     <?php
                         $status = $izin['status'];
-                        $statusOrder = ['diajukan', 'diproses_guru_kelas', 'diproses_wali_kelas', 'diproses_wakil_kurikulum', 'diproses_guru_piket', 'disetujui'];
-                        $currentStatusIndex = array_search($status, $statusOrder);
+                        $statusOrder = ['diajukan', 'diproses_guru_kelas', 'diproses_wali_kelas', 'diproses_wakil_kesiswaan', 'diproses_guru_piket', 'disetujui'];
+                        
+                        // This is the status name of the step being rendered.
+                        // The key is the step name, value is the status name in the DB.
+                        $stepStatuses = [
+                            'guru_mapel' => 'diproses_guru_kelas',
+                            'wali_kelas' => 'diproses_wali_kelas',
+                            'wakil_kesiswaan' => 'diproses_wakil_kesiswaan',
+                            'guru_piket' => 'diproses_guru_piket',
+                            'selesai' => 'disetujui'
+                        ];
 
-                        // Function to render the badge based on the state of a step
-                        function render_approval_badge($step_index, $current_status_index, $is_rejected) {
+                        function render_approval_badge($step_status_name, $izin, $statusOrder) {
+                            $current_status = $izin['status'];
+                            $is_rejected = ($current_status === 'ditolak');
+                            $rejected_stage = $izin['rejected_at_stage'] ?? null;
+
+                            $step_index = array_search($step_status_name, $statusOrder);
+
                             if ($is_rejected) {
-                                // If rejected, previous steps are complete, future steps are skipped
+                                $rejected_stage_index = array_search($rejected_stage, $statusOrder);
+
+                                if ($step_index < $rejected_stage_index) {
+                                    return '<span class="badge bg-success rounded-pill">Selesai</span>';
+                                } elseif ($step_index === $rejected_stage_index) {
+                                    return '<span class="badge bg-danger rounded-pill">Ditolak</span>';
+                                } else {
+                                    return '<span class="badge bg-secondary rounded-pill">Tidak Diproses</span>';
+                                }
+                            } else {
+                                $current_status_index = array_search($current_status, $statusOrder);
                                 if ($current_status_index > $step_index) {
                                     return '<span class="badge bg-success rounded-pill">Selesai</span>';
+                                } elseif ($current_status_index === $step_index) {
+                                    return '<span class="badge bg-warning text-dark rounded-pill">Menunggu</span>';
                                 } else {
-                                    return '<span class="badge bg-danger rounded-pill">Ditolak</span>'; // Or skipped
+                                    return '<span class="badge bg-secondary rounded-pill">Belum Diproses</span>';
                                 }
-                            }
-
-                            if ($current_status_index > $step_index) {
-                                return '<span class="badge bg-success rounded-pill">Selesai</span>';
-                            } elseif ($current_status_index === $step_index) {
-                                return '<span class="badge bg-warning text-dark rounded-pill">Menunggu</span>';
-                            } else {
-                                return '<span class="badge bg-secondary rounded-pill">Belum Diproses</span>';
                             }
                         }
                     ?>
@@ -181,13 +199,13 @@
                         <span class="badge bg-primary rounded-pill">Selesai</span>
                     </div>
                     
-                    <!-- 2. Guru Kelas -->
+                    <!-- 2. Guru Mapel -->
                     <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="fw-bold small">2. Persetujuan Guru Kelas</div>
+                            <div class="fw-bold small">2. Persetujuan Guru Mapel</div>
                             <small class="text-muted"><?= esc($izin['nama_guru_kelas'] ?? 'Menunggu Penugasan') ?></small>
                         </div>
-                        <?= render_approval_badge(1, $currentStatusIndex, $status === 'ditolak') ?>
+                        <?= render_approval_badge('diproses_guru_kelas', $izin, $statusOrder) ?>
                     </div>
                     
                     <!-- 3. Wali Kelas -->
@@ -196,16 +214,16 @@
                             <div class="fw-bold small">3. Persetujuan Wali Kelas</div>
                             <small class="text-muted"><?= esc($izin['nama_wali_kelas'] ?? '-') ?></small>
                         </div>
-                        <?= render_approval_badge(2, $currentStatusIndex, $status === 'ditolak') ?>
+                        <?= render_approval_badge('diproses_wali_kelas', $izin, $statusOrder) ?>
                     </div>
                     
-                    <!-- 4. Wakil Kurikulum -->
+                    <!-- 4. Wakil Kesiswaan -->
                     <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="fw-bold small">4. Persetujuan Wakil Kurikulum</div>
+                            <div class="fw-bold small">4. Persetujuan Wakil Kesiswaan</div>
                             <small class="text-muted"><?= esc($izin['nama_wakil_kurikulum'] ?? '-') ?></small>
                         </div>
-                        <?= render_approval_badge(3, $currentStatusIndex, $status === 'ditolak') ?>
+                        <?= render_approval_badge('diproses_wakil_kesiswaan', $izin, $statusOrder) ?>
                     </div>
                     
                     <!-- 5. Guru Piket -->
@@ -214,7 +232,7 @@
                             <div class="fw-bold small">5. Persetujuan Guru Piket</div>
                             <small class="text-muted"><?= esc($izin['nama_guru_piket'] ?? '-') ?></small>
                         </div>
-                        <?= render_approval_badge(4, $currentStatusIndex, $status === 'ditolak') ?>
+                        <?= render_approval_badge('diproses_guru_piket', $izin, $statusOrder) ?>
                     </div>
 
                      <!-- 6. Selesai -->
@@ -223,7 +241,7 @@
                             <div class="fw-bold small">6. Selesai</div>
                             <small class="text-muted">Permintaan izin disetujui</small>
                         </div>
-                        <?= render_approval_badge(5, $currentStatusIndex, $status === 'ditolak') ?>
+                        <?= render_approval_badge('disetujui', $izin, $statusOrder) ?>
                     </div>
                 </div>
             </div>

@@ -8,14 +8,25 @@ use App\Models\User;
 
 class KelasController extends BaseController
 {
-    $kelasModel = new Kelas();
-        $data['kelas'] = $kelasModel->getKelasWithWalikelas();
+    public function index()
+    {
+        $session = session();
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+            return redirect()->to('/auth');
+        }
+
+        $kelasModel = new Kelas();
         
-        // Mendapatkan semua user dengan role wali_kelas untuk dropdown
-        $userModel = new User();
-        $data['walikelas'] = $userModel->where('role', 'wali_kelas')->findAll();
+        // Fetch classes with wali_kelas information using the new column
+        $kelas = $kelasModel->select('kelas.*, users.nama_lengkap as nama_walikelas, users.username as nip_walikelas')
+                                    ->join('users', 'users.id = kelas.wali_kelas_user_id', 'left')
+                                    ->paginate(10, 'kelas'); // Use paginate() and define a group name
+
+        $data['kelas'] = $kelas;
+        $data['pager'] = $kelasModel->pager; // Pass the pager object
 
         return view('admin/manajemen_kelas', $data);
+    }
     
     public function tambah()
     {
@@ -26,8 +37,9 @@ class KelasController extends BaseController
         }
         
         // Mendapatkan semua user dengan role wali_kelas untuk dropdown
-        $userModel = new User();
-        $data['walikelas'] = $userModel->where('role', 'wali_kelas')->findAll();
+        $userRoleModel = new \App\Models\UserRole();
+        $data['walikelas_list'] = $userRoleModel->getUsersByRole('wali_kelas');
+        log_message('debug', 'KelasController@tambah: walikelas_list passed to view: ' . json_encode($data['walikelas_list']));
 
         return view('admin/tambah_kelas', $data);
     }
@@ -46,6 +58,7 @@ class KelasController extends BaseController
             'tingkat' => $this->request->getPost('tingkat'),
             'jurusan' => $this->request->getPost('jurusan'),
             'tahun_ajaran' => $this->request->getPost('tahun_ajaran'),
+            'wali_kelas_user_id' => $this->request->getPost('wali_kelas_user_id'), // Add this line
         ];
 
         // Validate using model validation
@@ -74,8 +87,9 @@ class KelasController extends BaseController
         }
         
         // Mendapatkan semua user dengan role wali_kelas untuk dropdown
-        $userModel = new User();
-        $data['walikelas'] = $userModel->where('role', 'wali_kelas')->findAll();
+        $userRoleModel = new \App\Models\UserRole();
+        $data['walikelas_list'] = $userRoleModel->getUsersByRole('wali_kelas');
+        log_message('debug', 'KelasController@edit: walikelas_list passed to view: ' . json_encode($data['walikelas_list']));
 
         return view('admin/edit_kelas', $data);
     }
@@ -94,6 +108,7 @@ class KelasController extends BaseController
             'tingkat' => $this->request->getPost('tingkat'),
             'jurusan' => $this->request->getPost('jurusan'),
             'tahun_ajaran' => $this->request->getPost('tahun_ajaran'),
+            'wali_kelas_user_id' => $this->request->getPost('wali_kelas_user_id'), // Add this line
         ];
 
         // Validate using model validation
@@ -148,45 +163,5 @@ class KelasController extends BaseController
         $kelas = $kelasModel->findAll();
         
         return $this->response->setJSON(['status' => 'success', 'data' => $kelas]);
-    }
-    
-    // Method untuk menetapkan walikelas ke kelas
-    public function setWalikelas($id)
-    {
-        // Check if user is logged in and is admin
-        $session = session();
-        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
-            return redirect()->to('/auth');
-        }
-
-        $kelasModel = new Kelas();
-        $userModel = new User();
-        
-        // Cek apakah kelas ada
-        $kelas = $kelasModel->find($id);
-        if (!$kelas) {
-            return redirect()->to('/admin/kelas')->with('error', 'Data kelas tidak ditemukan');
-        }
-        
-        // Mendapatkan ID user walikelas dari POST
-        $idUserWalikelas = $this->request->getPost('id_user_walikelas');
-        
-        // Validasi input
-        if (!$idUserWalikelas) {
-            return redirect()->back()->with('error', 'Harap pilih walikelas');
-        }
-        
-        // Cek apakah user walikelas ada dan memiliki role wali_kelas
-        $walikelas = $userModel->find($idUserWalikelas);
-        if (!$walikelas || $walikelas['role'] !== 'wali_kelas') {
-            return redirect()->back()->with('error', 'User yang dipilih bukan walikelas');
-        }
-        
-        // Update id_kelas pada user walikelas
-        if ($userModel->update($idUserWalikelas, ['id_kelas' => $id])) {
-            return redirect()->to('/admin/kelas')->with('success', 'Walikelas berhasil ditetapkan untuk kelas ' . $kelas['nama_kelas']);
-        } else {
-            return redirect()->back()->with('error', 'Gagal menetapkan walikelas');
-        }
     }
 }

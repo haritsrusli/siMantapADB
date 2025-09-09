@@ -34,7 +34,7 @@ class UserRole extends Model
     // Validation
     protected $validationRules      = [
         'user_id' => 'required|is_natural_no_zero',
-        'role' => 'required|in_list[admin,siswa,guru,wali_kelas,guru_piket]',
+        'role' => 'required|in_list[admin,siswa,guru,wali_kelas,guru_piket,wakil_kurikulum,wakil_kesiswaan]',
     ];
     protected $validationMessages   = [
         'user_id' => [
@@ -43,7 +43,7 @@ class UserRole extends Model
         ],
         'role' => [
             'required' => 'Role harus dipilih',
-            'in_list' => 'Role hanya boleh admin, siswa, guru, wali_kelas, atau guru_piket',
+            'in_list' => 'Role hanya boleh admin, siswa, guru, wali_kelas, guru_piket, wakil_kurikulum, atau wakil_kesiswaan',
         ],
     ];
     protected $skipValidation       = false;
@@ -80,26 +80,24 @@ class UserRole extends Model
     /**
      * Menetapkan role untuk user (menghapus role lama dan menambahkan role baru)
      */
-    public function setRolesForUser($userId, $roles)
+    public function setRolesForUser($userId, array $roles): bool
     {
+        $this->db->transStart();
+
         // Hapus role lama
         $this->where('user_id', $userId)->delete();
-        
+
         // Tambahkan role baru
-        $data = [];
-        foreach ($roles as $role) {
-            $data[] = [
-                'user_id' => $userId,
-                'role' => $role,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
+        if (!empty($roles)) {
+            foreach ($roles as $role) {
+                $this->insert([
+                    'user_id' => $userId,
+                    'role'    => $role,
+                ]);
+            }
         }
-        
-        if (!empty($data)) {
-            return $this->insertBatch($data);
-        }
-        
-        return true;
+
+        return $this->db->transComplete();
     }
     
     /**
@@ -139,9 +137,12 @@ class UserRole extends Model
      */
     public function getUsersByRole($role)
     {
-        return $this->select('users.*, user_roles.role')
+        log_message('debug', 'UserRole@getUsersByRole: Attempting to get users for role: ' . $role);
+        $result = $this->select('users.*, user_roles.role')
             ->join('users', 'users.id = user_roles.user_id')
             ->where('user_roles.role', $role)
             ->findAll();
+        log_message('debug', 'UserRole@getUsersByRole: Result for ' . $role . ': ' . json_encode($result));
+        return $result;
     }
 }

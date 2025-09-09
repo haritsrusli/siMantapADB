@@ -45,7 +45,7 @@ class UserRoleController extends BaseController
 
         $data['user'] = $user;
         $data['userRoles'] = $userRoles;
-        $data['availableRoles'] = ['admin', 'siswa', 'guru', 'wali_kelas', 'guru_piket', 'ketua_kelas', 'sekretaris'];
+        $data['availableRoles'] = ['admin', 'guru', 'wali_kelas', 'guru_piket', 'wakil_kurikulum', 'wakil_kesiswaan', 'ketua_kelas', 'sekretaris']; // Removed 'siswa' as it's a primary role, added new roles
         $data['title'] = 'Edit User Roles';
 
         return view('admin/user_roles/edit', $data);
@@ -74,7 +74,7 @@ class UserRoleController extends BaseController
         }
 
         // Validasi role
-        $availableRoles = ['admin', 'siswa', 'guru', 'wali_kelas', 'guru_piket', 'ketua_kelas', 'sekretaris'];
+        $availableRoles = ['admin', 'guru', 'wali_kelas', 'guru_piket', 'wakil_kurikulum', 'wakil_kesiswaan', 'ketua_kelas', 'sekretaris'];
         foreach ($roles as $role) {
             if (!in_array($role, $availableRoles)) {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Role tidak valid: ' . $role]);
@@ -91,20 +91,24 @@ class UserRoleController extends BaseController
             }
         }
 
-        if ($mainRole === 'guru' || $mainRole === 'wali_kelas') {
+        if ($mainRole === 'guru') { // Only check for main role 'guru'
+            $allowedGuruRoles = ['admin', 'wali_kelas', 'guru_piket', 'wakil_kurikulum', 'wakil_kesiswaan'];
             foreach ($roles as $role) {
-                if (in_array($role, ['siswa', 'ketua_kelas', 'sekretaris'])) {
-                    return $this->response->setJSON(['status' => 'error', 'message' => 'Guru atau Wali Kelas tidak bisa memiliki role Siswa, Ketua Kelas, atau Sekretaris.']);
+                if (!in_array($role, $allowedGuruRoles)) {
+                    return $this->response->setJSON(['status' => 'error', 'message' => 'Guru hanya bisa memiliki role tambahan: ' . implode(', ', $allowedGuruRoles)]);
                 }
             }
         }
 
         // Set roles untuk user
         try {
-            $userRoleModel->setRolesForUser($userId, $roles);
+            $success = $userRoleModel->setRolesForUser($userId, $roles);
             
-            session()->setFlashdata('success', 'Roles berhasil diperbarui');
-            return $this->response->setJSON(['status' => 'success', 'message' => 'Roles berhasil diperbarui']);
+            if ($success) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'Roles berhasil diperbarui']);
+            } else {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Gagal memperbarui roles (operasi database gagal).']);
+            }
         } catch (\Exception $e) {
             log_message('error', 'Error updating user roles: ' . $e->getMessage());
             session()->setFlashdata('error', 'Gagal memperbarui roles');
@@ -129,7 +133,7 @@ class UserRoleController extends BaseController
         }
 
         // Validasi role
-        $availableRoles = ['admin', 'siswa', 'guru', 'wali_kelas', 'guru_piket', 'ketua_kelas', 'sekretaris'];
+        $availableRoles = ['admin', 'guru', 'wali_kelas', 'guru_piket', 'wakil_kurikulum', 'wakil_kesiswaan', 'ketua_kelas', 'sekretaris'];
         if (!in_array($role, $availableRoles)) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'Role tidak valid']);
         }
@@ -148,9 +152,10 @@ class UserRoleController extends BaseController
             }
         }
 
-        if ($mainRole === 'guru' || $mainRole === 'wali_kelas') {
-            if (in_array($role, ['siswa', 'ketua_kelas', 'sekretaris'])) {
-                return $this->response->setJSON(['status' => 'error', 'message' => 'Guru atau Wali Kelas tidak bisa memiliki role Siswa, Ketua Kelas, atau Sekretaris.']);
+        if ($mainRole === 'guru') { // Only check for main role 'guru'
+            $allowedGuruRoles = ['admin', 'wali_kelas', 'guru_piket', 'wakil_kurikulum', 'wakil_kesiswaan'];
+            if (!in_array($role, $allowedGuruRoles)) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Guru hanya bisa memiliki role tambahan: ' . implode(', ', $allowedGuruRoles)]);
             }
         }
 

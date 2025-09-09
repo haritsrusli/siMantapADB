@@ -13,19 +13,7 @@
 
     <div class="row mt-4">
         <div class="col-md-12" id="notification-container">
-            <?php if(session()->getFlashdata('success')): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle"></i> <?= session()->getFlashdata('success') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
-            
-            <?php if(session()->getFlashdata('error')): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle"></i> <?= session()->getFlashdata('error') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
+            <!-- Container for dynamic notifications -->
         </div>
     </div>
 
@@ -111,43 +99,36 @@
         e.preventDefault();
         
         const formData = new FormData(this);
-        const userId = <?= $user['id'] ?>;
-        
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalButtonContent = submitButton.innerHTML;
+
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Menyimpan...';
+        submitButton.disabled = true;
+
         // Kirim data ke server
         fetch('<?= base_url('admin/user-roles/update/' . $user['id']) ?>', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                '<?= csrf_header() ?>': '<?= csrf_hash() ?>'
             }
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                location.reload();
+                showNotification(data.message, 'success');
             } else {
-                // Tampilkan pesan error
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger alert-dismissible fade show';
-                alert.innerHTML = `
-                    <i class="bi bi-exclamation-triangle"></i> ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                document.getElementById('notification-container').innerHTML = '';
-                document.getElementById('notification-container').appendChild(alert);
+                showNotification(data.message || 'Gagal memperbarui roles.', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            // Tampilkan pesan error
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-danger alert-dismissible fade show';
-            alert.innerHTML = `
-                <i class="bi bi-exclamation-triangle"></i> Terjadi kesalahan saat menyimpan roles
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            document.getElementById('notification-container').innerHTML = '';
-            document.getElementById('notification-container').appendChild(alert);
+            showNotification('Terjadi kesalahan koneksi saat menyimpan roles.', 'error');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonContent;
+            submitButton.disabled = false;
         });
     });
 </script>

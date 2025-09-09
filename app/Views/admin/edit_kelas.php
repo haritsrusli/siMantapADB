@@ -19,12 +19,6 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <?php if(session()->getFlashdata('error')): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <?= session()->getFlashdata('error') ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <?php endif; ?>
                     
                     <form method="post" action="<?= base_url('admin/kelas/update/' . $kelas['id']) ?>">
                         <div class="row">
@@ -60,6 +54,23 @@
                                 </label>
                                 <input type="text" class="form-control" id="tahun_ajaran" name="tahun_ajaran" value="<?= $kelas['tahun_ajaran'] ?>">
                                 <div class="form-text">Opsional, format: 2025/2026</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="wali_kelas_user_id" class="form-label">
+                                    <i class="bi bi-person-badge"></i> Wali Kelas
+                                </label>
+                                <select class="form-select" id="wali_kelas_user_id" name="wali_kelas_user_id">
+                                    <option value="">-- Pilih Wali Kelas --</option>
+                                    <?php if(!empty($walikelas_list)): ?>
+                                        <?php foreach($walikelas_list as $walikelas): ?>
+                                            <option value="<?= $walikelas['id'] ?>" <?= ($kelas['wali_kelas_user_id'] == $walikelas['id']) ? 'selected' : '' ?>>
+                                                <?= esc($walikelas['nama_lengkap']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                                <div class="form-text">Opsional, pilih guru yang akan menjadi wali kelas</div>
                             </div>
                         </div>
                         

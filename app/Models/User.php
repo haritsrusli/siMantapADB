@@ -41,7 +41,7 @@ class User extends Model
         'username' => 'required|regex_match[/^[a-zA-Z0-9 .]+$/]|min_length[3]|max_length[100]|is_unique[users.username,id,{id}]',
         'password' => 'required|min_length[6]|max_length[255]',
         'nama_lengkap' => 'required|min_length[3]|max_length[150]',
-        'role' => 'required|in_list[admin,siswa,guru,wali_kelas,guru_piket]', // Menambahkan guru_piket sebagai role baru
+        'role' => 'required|in_list[admin,siswa,guru,guru_piket]', // Menambahkan guru_piket sebagai role baru
     ];
     protected $validationMessages   = [
         'username' => [
@@ -63,7 +63,7 @@ class User extends Model
         ],
         'role' => [
             'required' => 'Role harus dipilih',
-            'in_list' => 'Role hanya boleh admin, siswa, guru, wali_kelas, atau guru_piket',
+            'in_list' => 'Role hanya boleh admin, siswa, guru, atau guru_piket',
         ],
     ];
     protected $skipValidation       = false;

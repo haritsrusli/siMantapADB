@@ -36,7 +36,6 @@
                                     <option value="">Pilih Role</option>
                                     <option value="siswa" <?= $user['role'] == 'siswa' ? 'selected' : '' ?>>Siswa</option>
                                     <option value="guru" <?= $user['role'] == 'guru' ? 'selected' : '' ?>>Guru</option>
-                                    <option value="wali_kelas" <?= $user['role'] == 'wali_kelas' ? 'selected' : '' ?>>Wali Kelas</option>
                                 </select>
                             </div>
                             
@@ -122,16 +121,13 @@
             nisField.style.display = 'block';
             nisInput.setAttribute('required', 'required');
             kelasField.style.display = 'block';
-        } else if (role === 'guru' || role === 'wali_kelas') {
+        } else if (role === 'guru') {
             nipField.style.display = 'block';
             nipInput.setAttribute('required', 'required');
-            if (role === 'wali_kelas') {
-                kelasField.style.display = 'block';
-            }
         }
         
         // Jika mengubah role dari walikelas ke role lain, hapus id_kelas
-        if (role !== 'wali_kelas' && role !== 'siswa') {
+        if (role !== 'siswa') {
             document.getElementById('id_kelas').value = '';
         }
     }
