@@ -173,14 +173,32 @@
 
                                             <!-- Teacher Actions -->
                                             <?php if (str_starts_with($req['status'], 'diproses_') && $role !== 'admin' && $role !== 'siswa'): ?>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <button class="btn btn-success" onclick="handleApproval(<?= $req['id'] ?>, 'approve', this)" title="Setujui">
-                                                        <i class="bi bi-check-lg"></i>
-                                                    </button>
-                                                    <button class="btn btn-danger" onclick="toggleRejectionForm(<?= $req['id'] ?>)" title="Tolak">
-                                                        <i class="bi bi-x-lg"></i>
-                                                    </button>
-                                                </div>
+                                                <?php if ($req['status'] === 'diproses_guru_piket'): ?>
+                                                    <!-- Form khusus untuk guru piket dengan input jam kembali -->
+                                                    <div class="d-flex flex-wrap align-items-center">
+                                                        <input type="time" id="jam_kembali_<?= $req['id'] ?>" class="form-control form-control-sm mb-1 me-2" style="width: 130px;">
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <button class="btn btn-success" onclick="handleApprovalWithTime(<?= $req['id'] ?>, 'approve', this)" title="Setujui dengan Jam Kembali">
+                                                                <i class="bi bi-check-lg"></i>
+                                                            </button>
+                                                            <button class="btn btn-danger" onclick="handleApproval(<?= $req['id'] ?>, 'approve', this)" title="Setujui Tanpa Jam Kembali">
+                                                                <i class="bi bi-check"></i> ∅
+                                                            </button>
+                                                            <button class="btn btn-outline-danger" onclick="toggleRejectionForm(<?= $req['id'] ?>)" title="Tolak">
+                                                                <i class="bi bi-x-lg"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <button class="btn btn-success" onclick="handleApproval(<?= $req['id'] ?>, 'approve', this)" title="Setujui">
+                                                            <i class="bi bi-check-lg"></i>
+                                                        </button>
+                                                        <button class="btn btn-danger" onclick="toggleRejectionForm(<?= $req['id'] ?>)" title="Tolak">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </button>
+                                                    </div>
+                                                <?php endif; ?>
                                             <?php endif; ?>
 
                                             <!-- Student Actions -->
@@ -358,13 +376,73 @@ function handleApproval(id, action, element) {
 
     const currentStatus = element.closest('tr').dataset.status;
 
+    // Untuk guru piket, kita akan menambahkan jam kembali kosong sebagai default
+    // Nantinya akan diisi melalui form khusus jika diperlukan
     if (action === 'approve' && currentStatus === 'diproses_guru_piket') {
-        const returnTime = prompt('Masukkan jam kembali siswa (format HH:MM):');
-        if (returnTime === null) return; // User cancelled
-        if (!returnTime.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
-            showNotification('Format jam tidak valid. Gunakan format HH:MM.', 'error');
-            return;
+        // Tambahkan jam kembali kosong sebagai default
+        data.append('jam_kembali', '');
+    }
+
+    const originalContent = element.innerHTML;
+    element.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+    element.disabled = true;
+
+    fetch(url, {
+        method: 'POST',
+        body: data,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            '<?= csrf_header() ?>': '<?= csrf_hash() ?>'
         }
+    })
+    .then(response => {
+         if (!response.ok) {
+            return response.json().catch(() => {
+                throw new Error(`Server responded with status: ${response.status}`)
+            }).then(errData => {
+                throw errData; // Throw parsed error data
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            showNotification(data.message || 'Aksi berhasil.', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            const errorMsg = data.message || 'Terjadi kesalahan tidak diketahui.';
+            showNotification(errorMsg, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const errorMsg = error.message || 'Tidak dapat memproses permintaan ke server.';
+        showNotification(errorMsg, 'error');
+    })
+    .finally(() => {
+        element.innerHTML = originalContent;
+        element.disabled = false;
+    });
+}
+
+function handleApprovalWithTime(id, action, element) {
+    let url = `<?= base_url('izin-keluar/') ?>${id}`;
+    let data = new FormData();
+    data.append('_method', 'PUT');
+    data.append('action', action);
+
+    // Dapatkan nilai jam kembali dari input
+    const timeInput = document.getElementById(`jam_kembali_${id}`);
+    const returnTime = timeInput ? timeInput.value : '';
+
+    // Validasi format waktu jika diisi
+    if (returnTime && !returnTime.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+        showNotification('Format jam tidak valid. Gunakan format HH:MM.', 'error');
+        return;
+    }
+
+    // Tambahkan jam kembali ke data
+    if (returnTime) {
         data.append('jam_kembali', returnTime);
     }
 
@@ -410,4 +488,39 @@ function handleApproval(id, action, element) {
     });
 }
 </script>
+<?= $this->endSection() ?>
+
+<?= $this->section('styles') ?>
+<style>
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+        
+        .btn-group-sm > .btn, .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        #izinTable th, #izinTable td {
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .flex-wrap.align-items-center {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .flex-wrap.align-items-center input[type="time"] {
+            margin-bottom: 0.5rem;
+            margin-right: 0;
+            width: 100% !important;
+        }
+        
+        .flex-wrap.align-items-center .btn-group {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
 <?= $this->endSection() ?>

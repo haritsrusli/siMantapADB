@@ -302,9 +302,11 @@ class IzinKeluarController extends ResourceController
             $hasPermission = true;
         } else if ($status === 'diproses_wali_kelas' && $izin['wali_kelas_id'] == $userId) {
             $hasPermission = true;
+        } else if ($status === 'diproses_wakil_kesiswaan' && $izin['wakil_kurikulum_id'] == $userId) {
+            $hasPermission = true;
         } else {
             $penugasanModel = new IzinKeluarPenugasan();
-            // Map status to role, e.g., 'diproses_wakil_kurikulum' -> 'wakil_kurikulum'
+            // Map status to role, e.g., 'diproses_wakil_kesiswaan' -> 'wakil_kesiswaan'
             $requiredRole = str_replace('diproses_', '', $status);
             $isAssigned = $penugasanModel->where('user_id', $userId)->where('role', $requiredRole)->first();
             if ($isAssigned) {
@@ -410,9 +412,12 @@ class IzinKeluarController extends ResourceController
             return $this->failNotFound('Permintaan izin tidak ditemukan.');
         }
 
-        // Izinkan akses selama status belum 'disetujui' atau 'ditolak'
-        if ($data['izin']['status'] === 'disetujui' || $data['izin']['status'] === 'ditolak') {
-            return $this->failNotFound('Permintaan izin tidak dapat ditugaskan ulang karena sudah selesai atau ditolak.');
+        // Izinkan akses selama status belum 'disetujui' 
+        // Untuk status 'ditolak', arahkan ke halaman detail izin
+        if ($data['izin']['status'] === 'disetujui') {
+            return redirect()->to('/izin-keluar/' . $id)->with('error', 'Permintaan izin sudah disetujui dan tidak dapat ditugaskan ulang.');
+        } else if ($data['izin']['status'] === 'ditolak') {
+            return redirect()->to('/izin-keluar/' . $id)->with('error', 'Permintaan izin sudah ditolak. Silakan lihat detail penolakan di halaman ini.');
         }
 
         // Get user lists
@@ -463,7 +468,7 @@ class IzinKeluarController extends ResourceController
             $validationErrors[] = 'Wali Kelas harus dipilih.';
         }
         if (empty($wakilKurikulumId)) {
-            $validationErrors[] = 'Wakil Kurikulum harus dipilih.';
+            $validationErrors[] = 'Wakil Kesiswaan harus dipilih.';
         }
         if (empty($guruPiketId)) {
             $validationErrors[] = 'Guru Piket harus dipilih.';
@@ -529,7 +534,7 @@ class IzinKeluarController extends ResourceController
         }
 
         // Validate role
-        $availableRoles = ['guru_kelas', 'wakil_kurikulum', 'guru_piket'];
+        $availableRoles = ['guru_kelas', 'wali_kelas', 'wakil_kesiswaan', 'guru_piket'];
         if (!in_array($role, $availableRoles)) {
             return redirect()->back()->with('error', 'Role tidak valid.');
         }

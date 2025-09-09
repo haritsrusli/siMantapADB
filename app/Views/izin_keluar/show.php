@@ -65,7 +65,15 @@
                         
                         <div class="mb-3">
                             <label class="form-label text-muted small mb-1">Jam Kembali</label>
-                            <div class="fw-bold"><?= esc($izin['jam_kembali'] ?? '-') ?></div>
+                            <div class="fw-bold">
+                                <?php if (empty($izin['jam_kembali']) && $izin['status'] === 'disetujui'): ?>
+                                    <span class="text-muted">Siswa tidak kembali ke sekolah</span>
+                                <?php elseif (!empty($izin['jam_kembali'])): ?>
+                                    <?= esc($izin['jam_kembali']) ?>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         
                         <div class="mb-3">
@@ -75,7 +83,7 @@
                                     'diajukan' => 'Menunggu Diproses Admin',
                                     'diproses_guru_kelas' => 'Menunggu Persetujuan Guru Kelas',
                                     'diproses_wali_kelas' => 'Menunggu Persetujuan Wali Kelas',
-                                    'diproses_wakil_kurikulum' => 'Menunggu Persetujuan Wakil Kurikulum',
+                                    'diproses_wakil_kurikulum' => 'Menunggu Persetujuan Wakil Kesiswaan',
                                     'diproses_guru_piket' => 'Menunggu Persetujuan Guru Piket',
                                     'disetujui' => 'Disetujui',
                                     'ditolak' => 'Ditolak'
@@ -179,9 +187,16 @@
                                 }
                             } else {
                                 $current_status_index = array_search($current_status, $statusOrder);
-                                if ($current_status_index > $step_index) {
+                                // Ketika status adalah 'disetujui', tahap 'diproses_guru_piket' juga harus menunjukkan "Selesai"
+                                if ($current_status === 'disetujui' && $step_status_name === 'diproses_guru_piket') {
                                     return '<span class="badge bg-success rounded-pill">Selesai</span>';
-                                } elseif ($current_status_index === $step_index) {
+                                } 
+                                // Ketika status adalah 'disetujui', tahap 'disetujui' (tahap 6) juga harus menunjukkan "Selesai"
+                                else if ($current_status === 'disetujui' && $step_status_name === 'disetujui') {
+                                    return '<span class="badge bg-success rounded-pill">Selesai</span>';
+                                } else if ($current_status_index > $step_index) {
+                                    return '<span class="badge bg-success rounded-pill">Selesai</span>';
+                                } else if ($current_status_index === $step_index) {
                                     return '<span class="badge bg-warning text-dark rounded-pill">Menunggu</span>';
                                 } else {
                                     return '<span class="badge bg-secondary rounded-pill">Belum Diproses</span>';

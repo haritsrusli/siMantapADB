@@ -41,7 +41,7 @@ class IzinKeluar extends Model
         'alasan'            => 'permit_empty|min_length[5]',
         'jam_keluar'        => 'permit_empty|regex_match[/^[0-2][0-9]:[0-5][0-9]$/]',
         'jam_kembali'       => 'permit_empty|regex_match[/^[0-2][0-9]:[0-5][0-9]$/]',
-        'status'            => 'permit_empty|in_list[diajukan,diproses_guru_kelas,diproses_wali_kelas,diproses_wakil_kurikulum,diproses_guru_piket,disetujui,ditolak]',
+        'status'            => 'permit_empty|in_list[diajukan,diproses_guru_kelas,diproses_wali_kelas,diproses_wakil_kurikulum,diproses_wakil_kesiswaan,diproses_guru_piket,disetujui,ditolak]',
         'guru_kelas_id'     => 'permit_empty|integer',
         'wali_kelas_id'     => 'permit_empty|integer',
         'wakil_kurikulum_id' => 'permit_empty|integer',
