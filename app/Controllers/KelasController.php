@@ -103,12 +103,31 @@ class KelasController extends BaseController
         }
 
         $kelasModel = new Kelas();
+        $waliKelasUserId = $this->request->getPost('wali_kelas_user_id');
+        
+        // Validate wali_kelas_user_id - check if this user is already assigned to another class
+        if (!empty($waliKelasUserId)) {
+            // Check if this user is already assigned as wali_kelas in another class (excluding current class)
+            $existingAssignment = $kelasModel->where('wali_kelas_user_id', $waliKelasUserId)
+                ->where('id !=', $id)
+                ->first();
+                
+            if ($existingAssignment) {
+                // Get user name for better error message
+                $userModel = new \App\Models\User();
+                $user = $userModel->find($waliKelasUserId);
+                $userName = $user ? $user['nama_lengkap'] : 'User';
+                
+                return redirect()->back()->with('error', $userName . ' sudah menjadi wali kelas di kelas lain. Satu guru hanya bisa menjadi wali kelas satu kelas saja.');
+            }
+        }
+        
         $data = [
             'nama_kelas' => $this->request->getPost('nama_kelas'),
             'tingkat' => $this->request->getPost('tingkat'),
             'jurusan' => $this->request->getPost('jurusan'),
             'tahun_ajaran' => $this->request->getPost('tahun_ajaran'),
-            'wali_kelas_user_id' => $this->request->getPost('wali_kelas_user_id'), // Add this line
+            'wali_kelas_user_id' => $waliKelasUserId, // Add this line
         ];
 
         // Validate using model validation

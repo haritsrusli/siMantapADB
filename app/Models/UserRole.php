@@ -138,10 +138,36 @@ class UserRole extends Model
     public function getUsersByRole($role)
     {
         log_message('debug', 'UserRole@getUsersByRole: Attempting to get users for role: ' . $role);
-        $result = $this->select('users.*, user_roles.role')
-            ->join('users', 'users.id = user_roles.user_id')
-            ->where('user_roles.role', $role)
-            ->findAll();
+        
+        // For wali_kelas role, exclude users who are already assigned as wali_kelas in other classes
+        if ($role === 'wali_kelas') {
+            // Get all user IDs that are already assigned as wali_kelas
+            $kelasModel = new \App\Models\Kelas();
+            $assignedWalikelas = $kelasModel->where('wali_kelas_user_id IS NOT NULL', null, false)
+                ->findAll();
+            
+            $assignedUserIds = [];
+            foreach ($assignedWalikelas as $kelas) {
+                $assignedUserIds[] = $kelas['wali_kelas_user_id'];
+            }
+            
+            // If there are assigned wali_kelas, exclude them from the query
+            $query = $this->select('users.*, user_roles.role')
+                ->join('users', 'users.id = user_roles.user_id');
+                
+            if (!empty($assignedUserIds)) {
+                $query = $query->whereNotIn('user_roles.user_id', $assignedUserIds);
+            }
+            
+            $result = $query->where('user_roles.role', $role)
+                ->findAll();
+        } else {
+            $result = $this->select('users.*, user_roles.role')
+                ->join('users', 'users.id = user_roles.user_id')
+                ->where('user_roles.role', $role)
+                ->findAll();
+        }
+        
         log_message('debug', 'UserRole@getUsersByRole: Result for ' . $role . ': ' . json_encode($result));
         return $result;
     }
