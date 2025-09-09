@@ -161,12 +161,12 @@ document.getElementById('izinForm').addEventListener('submit', function(e) {
     const alasan = document.getElementById('alasan').value.trim();
     
     if (!jenisIzin) {
-        alert('Silakan pilih jenis izin terlebih dahulu.');
+        showNotification('Silakan pilih jenis izin terlebih dahulu.', 'error');
         return;
     }
     
     if (alasan.length < 5) {
-        alert('Alasan harus diisi minimal 5 karakter.');
+        showNotification('Alasan harus diisi minimal 5 karakter.', 'error');
         return;
     }
     

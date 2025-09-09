@@ -10,7 +10,7 @@
     <style>
         .notification-container {
             position: fixed;
-            bottom: 1rem;
+            top: 1rem;
             right: 1rem;
             z-index: 1050;
             display: flex;
@@ -26,7 +26,7 @@
             box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.1);
             opacity: 0;
             transition: opacity 0.3s, transform 0.3s;
-            transform: translateY(20px);
+            transform: translateY(-20px);
         }
         .notification-toast.show {
             opacity: 1;
@@ -37,6 +37,12 @@
         }
         .notification-toast.error {
             background-color: var(--bs-danger);
+        }
+        .notification-toast.warning {
+            background-color: var(--bs-warning);
+        }
+        .notification-toast.info {
+            background-color: var(--bs-info);
         }
     </style>
     <?= $this->renderSection('styles') ?>
@@ -73,20 +79,6 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
-                <?php if (session()->getFlashdata('success')) : ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <?= session()->getFlashdata('success') ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (session()->getFlashdata('error')) : ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?= session()->getFlashdata('error') ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-
                 <?= $this->renderSection('content') ?>
             </div>
         </div>
@@ -121,6 +113,25 @@
                 toast.addEventListener('transitionend', () => toast.remove());
             }, 5000);
         }
+        
+        // Tampilkan notifikasi flash data saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if (session()->getFlashdata('success')) : ?>
+                showNotification('<?= session()->getFlashdata('success') ?>', 'success');
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('error')) : ?>
+                showNotification('<?= session()->getFlashdata('error') ?>', 'error');
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('info')) : ?>
+                showNotification('<?= session()->getFlashdata('info') ?>', 'info');
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('warning')) : ?>
+                showNotification('<?= session()->getFlashdata('warning') ?>', 'warning');
+            <?php endif; ?>
+        });
     </script>
     <?= $this->renderSection('scripts') ?>
 </body>

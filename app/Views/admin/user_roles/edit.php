@@ -12,12 +12,6 @@
     </div>
 
     <div class="row mt-4">
-        <div class="col-md-12" id="notification-container">
-            <!-- Container for dynamic notifications -->
-        </div>
-    </div>
-
-    <div class="row mt-4">
         <div class="col-md-12">
             <div class="card shadow">
                 <div class="card-header bg-white">

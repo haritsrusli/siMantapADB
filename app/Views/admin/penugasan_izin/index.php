@@ -81,28 +81,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <?php if(session()->getFlashdata('success')): ?>
-                    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-                        <div class="d-flex">
-                            <div class="me-2">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div><?= session()->getFlashdata('success') ?></div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-                <?php if(session()->getFlashdata('error')): ?>
-                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
-                        <div class="d-flex">
-                            <div class="me-2">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                            </div>
-                            <div><?= session()->getFlashdata('error') ?></div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
+                
 
                 <!-- Wali Kelas Otomatis -->
                 <div class="mb-5">
@@ -183,7 +162,7 @@ document.getElementById('assignForm').addEventListener('submit', function(e) {
     
     if (!user || !role) {
         e.preventDefault();
-        alert('Silakan lengkapi semua field yang diperlukan.');
+        showNotification('Silakan lengkapi semua field yang diperlukan.', 'error');
     }
 });
 </script>

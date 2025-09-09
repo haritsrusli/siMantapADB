@@ -150,7 +150,7 @@
         function showPresensiForm() {
             // Cek apakah ada presensi manual
             <?php if($presensi_manual): ?>
-                alert("Anda tidak dapat melakukan presensi karena status kehadiran Anda sudah diatur secara manual oleh admin.");
+                showNotification("Anda tidak dapat melakukan presensi karena status kehadiran Anda sudah diatur secara manual oleh admin.", "warning");
                 return;
             <?php endif; ?>
             
@@ -333,15 +333,6 @@
             presensiBtn.innerHTML = '<i class="bi bi-calendar-check"></i> Kirim Presensi';
         }
         
-        function showNotification(message, type) {
-            const id = 'notif-' + Date.now();
-            const notification = document.createElement('div');
-            notification.id = id;
-            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
-            notification.style.zIndex = '9999';
-            notification.innerHTML = `<i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle'}"></i> ${message}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
-            document.body.appendChild(notification);
-            setTimeout(() => document.getElementById(id)?.remove(), 5000);
-        }
+        
     </script>
 <?= $this->endSection() ?>

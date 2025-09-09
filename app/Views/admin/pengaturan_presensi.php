@@ -16,77 +16,75 @@
         </div>
     </div>
             
-            <div class="card shadow">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-geo"></i> Pengaturan Lokasi & Radius
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-secondary btn-sm">
-                            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
-                        </a>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <form action="<?= base_url('admin/simpan-pengaturan-presensi') ?>" method="post">
-                                <div class="mb-3">
-                                    <label for="latitude" class="form-label">
-                                        <i class="bi bi-geo-alt"></i> Latitude
-                                    </label>
-                                    <input type="text" class="form-control" id="latitude" name="latitude" 
-                                           value="<?= isset($pengaturan) ? number_format($pengaturan['lokasi_latitude'], 8, '.', '') : '-6.20880000' ?>" required>
-                                    <div class="form-text">Contoh: -6.20880000 (antara -90 dan 90)</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="longitude" class="form-label">
-                                        <i class="bi bi-geo-alt"></i> Longitude
-                                    </label>
-                                    <input type="text" class="form-control" id="longitude" name="longitude" 
-                                           value="<?= isset($pengaturan) ? number_format($pengaturan['lokasi_longitude'], 8, '.', '') : '106.84560000' ?>" required>
-                                    <div class="form-text">Contoh: 106.84560000 (antara -180 dan 180)</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="radius" class="form-label">
-                                        <i class="bi bi-rulers"></i> Radius Toleransi (meter)
-                                    </label>
-                                    <input type="number" class="form-control" id="radius" name="radius" min="1" max="1000" 
-                                           value="<?= isset($pengaturan) ? $pengaturan['radius_meter'] : '50' ?>" required>
-                                    <div class="form-text">Radius maksimal 1000 meter</div>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <button type="button" class="btn btn-info" id="getCurrentLocation">
-                                        <i class="bi bi-compass"></i> Gunakan Lokasi Saat Ini
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-save"></i> Simpan Pengaturan
-                                    </button>
-                                </div>
-                            </form>
+    <div class="card shadow">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="bi bi-geo"></i> Pengaturan Lokasi & Radius
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="<?= base_url('admin/dashboard') ?>" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+                </a>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <form id="pengaturanLokasiForm" action="<?= base_url('admin/simpan-pengaturan-presensi') ?>" method="post">
+                        <div class="mb-3">
+                            <label for="latitude" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Latitude
+                            </label>
+                            <input type="text" class="form-control" id="latitude" name="latitude" 
+                                   value="<?= isset($pengaturan) ? number_format($pengaturan['lokasi_latitude'], 8, '.', '') : '-6.20880000' ?>" required>
+                            <div class="form-text">Contoh: -6.20880000 (antara -90 dan 90)</div>
                         </div>
                         
-                        <div class="col-md-6">
-                            <div class="d-flex justify-content-between mb-2">
-                                <button class="btn btn-sm btn-outline-primary" type="button" id="lockLocation">
-                                    <i class="bi bi-lock"></i> Lock Lokasi
-                                </button>
-                                <button class="btn btn-sm btn-outline-warning" type="button" id="unlockLocation" style="display: none;">
-                                    <i class="bi bi-unlock"></i> Unlock Lokasi
-                                </button>
-                            </div>
-                            
-                            <div id="map" style="height: 400px; border: 1px solid #ddd; border-radius: 5px;"></div>
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle"></i> Klik dan geser marker untuk mengatur lokasi sekolah<br>
-                                    <i class="bi bi-hand-index"></i> Gunakan tombol Lock/Unlock untuk mengunci atau membuka perubahan lokasi
-                                </small>
-                            </div>
+                        <div class="mb-3">
+                            <label for="longitude" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Longitude
+                            </label>
+                            <input type="text" class="form-control" id="longitude" name="longitude" 
+                                   value="<?= isset($pengaturan) ? number_format($pengaturan['lokasi_longitude'], 8, '.', '') : '106.84560000' ?>" required>
+                            <div class="form-text">Contoh: 106.84560000 (antara -180 dan 180)</div>
                         </div>
+                        
+                        <div class="mb-3">
+                            <label for="radius" class="form-label">
+                                <i class="bi bi-rulers"></i> Radius Toleransi (meter)
+                            </label>
+                            <input type="number" class="form-control" id="radius" name="radius" min="1" max="1000" 
+                                   value="<?= isset($pengaturan) ? $pengaturan['radius_meter'] : '50' ?>" required>
+                            <div class="form-text">Radius maksimal 1000 meter</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-info" id="getCurrentLocation">
+                                <i class="bi bi-compass"></i> Gunakan Lokasi Saat Ini
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Simpan Pengaturan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between mb-2">
+                        <button class="btn btn-sm btn-outline-primary" type="button" id="lockLocation">
+                            <i class="bi bi-lock"></i> Lock Lokasi
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" type="button" id="unlockLocation" style="display: none;">
+                            <i class="bi bi-unlock"></i> Unlock Lokasi
+                        </button>
+                    </div>
+                    
+                    <div id="map" style="height: 400px; border: 1px solid #ddd; border-radius: 5px;"></div>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> Klik dan geser marker untuk mengatur lokasi sekolah<br>
+                            <i class="bi bi-hand-index"></i> Gunakan tombol Lock/Unlock untuk mengunci atau membuka perubahan lokasi
+                        </small>
                     </div>
                 </div>
             </div>
@@ -102,7 +100,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form action="<?= base_url('admin/simpan-jam-presensi') ?>" method="post">
+                    <form id="jamPresensiForm" action="<?= base_url('admin/simpan-jam-presensi') ?>" method="post">
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead class="table-dark">
@@ -225,7 +223,7 @@
     // Tombol untuk mendapatkan lokasi saat ini
     document.getElementById('getCurrentLocation').addEventListener('click', function() {
         if (locationLocked) {
-            alert('Unlock lokasi terlebih dahulu untuk mengubah posisi');
+            showNotification('Unlock lokasi terlebih dahulu untuk mengubah posisi', 'warning');
             return;
         }
         
@@ -241,16 +239,16 @@
                 schoolMarker.setLatLng([lat, lng]);
                 map.setView([lat, lng], 15);
                 
-                alert('Lokasi berhasil diperbarui');
+                showNotification('Lokasi berhasil diperbarui', 'success');
             }, function(error) {
-                alert('Gagal mendapatkan lokasi saat ini: ' + error.message);
+                showNotification('Gagal mendapatkan lokasi saat ini: ' + error.message, 'error');
             }, { 
                 enableHighAccuracy: true,
                 timeout: 10000,
                 maximumAge: 0
             });
         } else {
-            alert('Geolocation tidak didukung oleh browser ini.');
+            showNotification('Geolocation tidak didukung oleh browser ini.', 'error');
         }
     });
     
@@ -275,14 +273,14 @@
                 schoolMarker.dragging.disable();
                 map.dragging.disable();
                 map.doubleClickZoom.disable();
-                alert('Lokasi telah dikunci.');
+                showNotification('Lokasi telah dikunci.', 'success');
             } else {
-                alert('Gagal mengunci lokasi: ' + data.message);
+                showNotification('Gagal mengunci lokasi: ' + data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat mengunci lokasi.');
+            showNotification('Terjadi kesalahan saat mengunci lokasi.', 'error');
         });
     });
     
@@ -307,14 +305,72 @@
                 schoolMarker.dragging.enable();
                 map.dragging.enable();
                 map.doubleClickZoom.enable();
-                alert('Lokasi telah dibuka.');
+                showNotification('Lokasi telah dibuka.', 'success');
             } else {
-                alert('Gagal membuka lokasi: ' + data.message);
+                showNotification('Gagal membuka lokasi: ' + data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat membuka lokasi.');
+            showNotification('Terjadi kesalahan saat membuka lokasi.', 'error');
+        });
+    });
+    
+    // Handle form submission for pengaturan lokasi with AJAX
+    document.getElementById('pengaturanLokasiForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var form = this;
+        var formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': '<?= csrf_hash() ?>'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan saat menyimpan pengaturan.', 'error');
+        });
+    });
+    
+    // Handle form submission for jam presensi with AJAX
+    document.getElementById('jamPresensiForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var form = this;
+        var formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': '<?= csrf_hash() ?>'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan saat menyimpan jam presensi.', 'error');
         });
     });
 </script>

@@ -268,12 +268,22 @@ class Admin extends BaseController
 
         // Validate input
         if (empty($latitude) || empty($longitude) || empty($radius)) {
-            return redirect()->back()->with('error', 'Semua field harus diisi');
+            $errorMessage = 'Semua field harus diisi';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+            } else {
+                return redirect()->back()->with('error', $errorMessage);
+            }
         }
 
         // Validate numeric values
         if (!is_numeric($latitude) || !is_numeric($longitude) || !is_numeric($radius)) {
-            return redirect()->back()->with('error', 'Koordinat dan radius harus berupa angka');
+            $errorMessage = 'Koordinat dan radius harus berupa angka';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+            } else {
+                return redirect()->back()->with('error', $errorMessage);
+            }
         }
 
         // Validate coordinate ranges
@@ -286,15 +296,30 @@ class Admin extends BaseController
         $lon = number_format($lon, 8, '.', '');
 
         if ($lat < -90 || $lat > 90) {
-            return redirect()->back()->with('error', 'Latitude harus antara -90 dan 90');
+            $errorMessage = 'Latitude harus antara -90 dan 90';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+            } else {
+                return redirect()->back()->with('error', $errorMessage);
+            }
         }
 
         if ($lon < -180 || $lon > 180) {
-            return redirect()->back()->with('error', 'Longitude harus antara -180 dan 180');
+            $errorMessage = 'Longitude harus antara -180 dan 180';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+            } else {
+                return redirect()->back()->with('error', $errorMessage);
+            }
         }
 
         if ($rad <= 0) {
-            return redirect()->back()->with('error', 'Radius harus lebih besar dari 0');
+            $errorMessage = 'Radius harus lebih besar dari 0';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+            } else {
+                return redirect()->back()->with('error', $errorMessage);
+            }
         }
 
         $pengaturanModel = new Pengaturan();
@@ -327,28 +352,53 @@ class Admin extends BaseController
             if ($pengaturan) {
                 // Update existing setting
                 if ($pengaturanModel->update($pengaturan['id'], $data)) {
-                    return redirect()->back()->with('success', 'Pengaturan lokasi berhasil diperbarui');
+                    // Cek apakah request ini adalah AJAX request
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['status' => 'success', 'message' => 'Pengaturan lokasi berhasil diperbarui']);
+                    } else {
+                        return redirect()->back()->with('success', 'Pengaturan lokasi berhasil diperbarui');
+                    }
                 } else {
                     $errors = $pengaturanModel->errors();
                     log_message('error', 'Failed to update pengaturan: ' . json_encode($errors));
                     $errorMessage = !empty($errors) ? 'Gagal memperbarui pengaturan lokasi: ' . implode(', ', $errors) : 'Gagal memperbarui pengaturan lokasi';
-                    return redirect()->back()->with('error', $errorMessage);
+                    // Cek apakah request ini adalah AJAX request
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+                    } else {
+                        return redirect()->back()->with('error', $errorMessage);
+                    }
                 }
             } else {
                 // Create new setting
                 if ($pengaturanModel->save($data)) {
-                    return redirect()->back()->with('success', 'Pengaturan lokasi berhasil disimpan');
+                    // Cek apakah request ini adalah AJAX request
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['status' => 'success', 'message' => 'Pengaturan lokasi berhasil disimpan']);
+                    } else {
+                        return redirect()->back()->with('success', 'Pengaturan lokasi berhasil disimpan');
+                    }
                 } else {
                     $errors = $pengaturanModel->errors();
                     log_message('error', 'Failed to save pengaturan: ' . json_encode($errors));
                     $errorMessage = !empty($errors) ? 'Gagal menyimpan pengaturan lokasi: ' . implode(', ', $errors) : 'Gagal menyimpan pengaturan lokasi';
-                    return redirect()->back()->with('error', $errorMessage);
+                    // Cek apakah request ini adalah AJAX request
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+                    } else {
+                        return redirect()->back()->with('error', $errorMessage);
+                    }
                 }
             }
         } catch (\Exception $e) {
             // Log error
             log_message('error', 'Error saving pengaturan: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan pengaturan lokasi: ' . $e->getMessage());
+            $errorMessage = 'Terjadi kesalahan saat menyimpan pengaturan lokasi: ' . $e->getMessage();
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+            } else {
+                return redirect()->back()->with('error', $errorMessage);
+            }
         }
     }
 
@@ -417,12 +467,22 @@ class Admin extends BaseController
         // Jika ada error validasi, kembali dengan pesan error
         if (!empty($errors)) {
             log_message('error', 'Validation errors in jam presensi: ' . implode(', ', $errors));
-            return redirect()->to('/admin/pengaturan-presensi')->with('error', 'Gagal memperbarui jam presensi: ' . implode(', ', $errors));
+            $errorMessage = 'Gagal memperbarui jam presensi: ' . implode(', ', $errors);
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+            } else {
+                return redirect()->to('/admin/pengaturan-presensi')->with('error', $errorMessage);
+            }
         }
 
         // Jika tidak ada data yang diisi, kembali dengan pesan
         if (empty($data)) {
-            return redirect()->to('/admin/pengaturan-presensi')->with('warning', 'Tidak ada data jam presensi yang diisi');
+            $warningMessage = 'Tidak ada data jam presensi yang diisi';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'warning', 'message' => $warningMessage]);
+            } else {
+                return redirect()->to('/admin/pengaturan-presensi')->with('warning', $warningMessage);
+            }
         }
 
         // Log data yang akan dikirim untuk debugging
@@ -432,13 +492,23 @@ class Admin extends BaseController
             if ($pengaturan) {
                 // Update existing setting - hanya update field jam presensi
                 if ($pengaturanModel->update($pengaturan['id'], $data)) {
-                    return redirect()->to('/admin/pengaturan-presensi')->with('success', 'Jam presensi berhasil diperbarui');
+                    // Cek apakah request ini adalah AJAX request
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['status' => 'success', 'message' => 'Jam presensi berhasil diperbarui']);
+                    } else {
+                        return redirect()->to('/admin/pengaturan-presensi')->with('success', 'Jam presensi berhasil diperbarui');
+                    }
                 } else {
                     // Log error untuk debugging
                     $modelErrors = $pengaturanModel->errors();
                     log_message('error', 'Failed to update jam presensi: ' . json_encode($modelErrors));
                     $errorMessage = !empty($modelErrors) ? 'Gagal memperbarui jam presensi: ' . implode(', ', $modelErrors) : 'Gagal memperbarui jam presensi';
-                    return redirect()->to('/admin/pengaturan-presensi')->with('error', $errorMessage);
+                    // Cek apakah request ini adalah AJAX request
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+                    } else {
+                        return redirect()->to('/admin/pengaturan-presensi')->with('error', $errorMessage);
+                    }
                 }
             } else {
                 // Create new setting if no existing one (though it should be created by pengaturanPresensi)
@@ -454,18 +524,33 @@ class Admin extends BaseController
                 $saveData = array_merge($defaultData, $data);
                 
                 if ($pengaturanModel->save($saveData)) {
-                    return redirect()->to('/admin/pengaturan-presensi')->with('success', 'Jam presensi berhasil disimpan');
+                    // Cek apakah request ini adalah AJAX request
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['status' => 'success', 'message' => 'Jam presensi berhasil disimpan']);
+                    } else {
+                        return redirect()->to('/admin/pengaturan-presensi')->with('success', 'Jam presensi berhasil disimpan');
+                    }
                 } else {
                     // Log error untuk debugging
                     $modelErrors = $pengaturanModel->errors();
                     log_message('error', 'Failed to save jam presensi: ' . json_encode($modelErrors));
                     $errorMessage = !empty($modelErrors) ? 'Gagal menyimpan jam presensi: ' . implode(', ', $modelErrors) : 'Gagal menyimpan jam presensi';
-                    return redirect()->to('/admin/pengaturan-presensi')->with('error', $errorMessage);
+                    // Cek apakah request ini adalah AJAX request
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+                    } else {
+                        return redirect()->to('/admin/pengaturan-presensi')->with('error', $errorMessage);
+                    }
                 }
             }
         } catch (\Exception $e) {
             log_message('error', 'Error saving jam presensi: ' . $e->getMessage());
-            return redirect()->to('/admin/pengaturan-presensi')->with('error', 'Terjadi kesalahan saat menyimpan jam presensi: ' . $e->getMessage());
+            $errorMessage = 'Terjadi kesalahan saat menyimpan jam presensi: ' . $e->getMessage();
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $errorMessage]);
+            } else {
+                return redirect()->to('/admin/pengaturan-presensi')->with('error', $errorMessage);
+            }
         }
     }
 

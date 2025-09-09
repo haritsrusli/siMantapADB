@@ -16,32 +16,7 @@
     </div>
     
     <!-- Flash Messages -->
-    <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>Berhasil!</strong> <?= session()->getFlashdata('success') ?>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    <?php endif; ?>
     
-    <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Error!</strong> <?= session()->getFlashdata('error') ?>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    <?php endif; ?>
-    
-    <?php if (session()->getFlashdata('info')): ?>
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <strong>Info:</strong> <?= session()->getFlashdata('info') ?>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    <?php endif; ?>
 
     <!-- Filter Section -->
     <div class="card shadow mb-4">

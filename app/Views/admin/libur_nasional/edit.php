@@ -19,12 +19,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <?php if(session()->getFlashdata('error')): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <?= session()->getFlashdata('error') ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <?php endif; ?>
+                    
                     
                     <form method="post" action="<?= base_url('admin/libur-nasional/update/' . $libur_nasional['id']) ?>">
                         <div class="row">
