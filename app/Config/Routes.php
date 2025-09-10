@@ -42,6 +42,9 @@ $routes->get('/siswa/riwayat', 'Siswa::riwayat');
 $routes->get('/siswa/profile', 'Siswa::profile');
 $routes->post('/siswa/upload-profile-photo', 'Siswa::uploadProfilePhoto');
 
+// Guru routes
+$routes->get('/guru/dashboard', 'Guru::dashboard');
+
 // Admin routes
 $routes->get('/admin/dashboard', 'Admin::dashboard');
 $routes->get('/admin/pengaturan-presensi', 'Admin::pengaturanPresensi');

@@ -11,9 +11,6 @@
                 </h2>
                 <p class="text-muted mb-0">Ajukan permintaan izin keluar sekolah</p>
             </div>
-            <a href="<?= base_url('izin-keluar') ?>" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Kembali
-            </a>
         </div>
     </div>
 </div>
@@ -96,7 +93,9 @@
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a href="<?= base_url('izin-keluar') ?>" class="btn btn-light">Batal</a>
+                        <a href="<?= base_url('izin-keluar') ?>" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Kembali
+                        </a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-send"></i> Ajukan Permintaan
                         </button>

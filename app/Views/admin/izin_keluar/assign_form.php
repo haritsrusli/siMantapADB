@@ -66,9 +66,6 @@ if ($isProcessFinished) {
                 </h2>
                 <p class="text-muted mb-0">Tugaskan staf dan atur waktu untuk permintaan izin keluar siswa.</p>
             </div>
-            <a href="<?= base_url('izin-keluar') ?>" class="btn btn-light">
-                <i class="bi bi-arrow-left"></i> Kembali
-            </a>
         </div>
     </div>
 </div>
@@ -199,7 +196,10 @@ if ($isProcessFinished) {
                     </div>
                 </div>
                 <div class="card-footer bg-white">
-                    <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-between">
+                        <a href="<?= base_url('izin-keluar') ?>" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Kembali
+                        </a>
                         <button type="submit" class="btn btn-primary" id="submit-btn" <?= $isProcessFinished ? 'disabled' : '' ?>>
                             <i class="bi bi-save"></i> Simpan Perubahan
                         </button>

@@ -51,7 +51,7 @@ class Auth extends BaseController
                 if ($user['role'] === 'admin') {
                     return redirect()->to('/admin/dashboard');
                 } else if (in_array($user['role'], $teacherRoles)) {
-                    return redirect()->to('/izin-keluar'); // Redirect teachers to the leave module
+                    return redirect()->to('/guru/dashboard'); // Redirect teachers to their dashboard
                 } else if ($user['role'] === 'siswa') {
                     return redirect()->to('/siswa/dashboard');
                 } else {
